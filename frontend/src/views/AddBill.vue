@@ -9,17 +9,18 @@
           </span>
         </div>
       </template>
-      
+
       <el-form
         ref="formRef"
         :model="form"
         :rules="rules"
-        label-width="100px"
+        :label-width="isMobile ? '80px' : '100px'"
         class="bill-form"
+        :label-position="isMobile ? 'top' : 'right'"
       >
         <!-- 账单类型选择 -->
         <el-form-item label="类型">
-          <el-radio-group v-model="form.type" size="large" @change="handleTypeChange">
+          <el-radio-group v-model="form.type" size="large" @change="handleTypeChange" class="type-radio-group">
             <el-radio-button label="expense">
               <el-icon><Bottom /></el-icon> 支出
             </el-radio-button>
@@ -31,7 +32,7 @@
             </el-radio-button>
           </el-radio-group>
         </el-form-item>
-        
+
         <!-- 金额 -->
         <el-form-item label="金额" prop="amount">
           <el-input-number
@@ -53,14 +54,14 @@
             </el-tag>
           </div>
         </el-form-item>
-        
+
         <!-- 账户 -->
         <el-form-item :label="form.type === 'transfer' ? '转出账户' : '账户'" prop="account_id">
           <el-select
             v-model="form.account_id"
             placeholder="选择账户"
             size="large"
-            style="width: 100%"
+            class="full-width-select"
           >
             <el-option-group label="资产账户">
               <el-option
@@ -80,14 +81,14 @@
             </el-option-group>
           </el-select>
         </el-form-item>
-        
+
         <!-- 目标账户（转账时显示） -->
         <el-form-item v-if="form.type === 'transfer'" label="转入账户" prop="to_account_id">
           <el-select
             v-model="form.to_account_id"
             placeholder="选择目标账户"
             size="large"
-            style="width: 100%"
+            class="full-width-select"
           >
             <el-option-group label="资产账户">
               <el-option
@@ -99,7 +100,7 @@
             </el-option-group>
           </el-select>
         </el-form-item>
-        
+
         <!-- 分类（非转账时显示） -->
         <el-form-item v-if="form.type !== 'transfer'" label="分类" prop="category_id">
           <div class="category-list">
@@ -115,7 +116,7 @@
             </div>
           </div>
         </el-form-item>
-        
+
         <!-- 日期 -->
         <el-form-item label="日期" prop="bill_time">
           <el-date-picker
@@ -123,35 +124,38 @@
             type="datetime"
             placeholder="选择日期时间"
             size="large"
-            style="width: 100%"
+            class="full-width-select"
             format="YYYY-MM-DD HH:mm"
             value-format="YYYY-MM-DD HH:mm:ss"
           />
         </el-form-item>
-        
+
         <!-- 备注 -->
         <el-form-item label="备注">
           <el-input
             v-model="form.remark"
             type="textarea"
-            :rows="3"
+            :rows="isMobile ? 2 : 3"
             placeholder="添加备注（可选）"
             maxlength="200"
             show-word-limit
           />
         </el-form-item>
-        
+
         <!-- 提交按钮 -->
         <el-form-item>
-          <el-button
-            type="primary"
-            size="large"
-            :loading="submitting"
-            @click="handleSubmit"
-          >
-            保存
-          </el-button>
-          <el-button size="large" @click="handleReset">重置</el-button>
+          <div class="form-actions">
+            <el-button
+              type="primary"
+              size="large"
+              :loading="submitting"
+              class="submit-btn"
+              @click="handleSubmit"
+            >
+              保存
+            </el-button>
+            <el-button size="large" class="submit-btn" @click="handleReset">重置</el-button>
+          </div>
         </el-form-item>
       </el-form>
     </el-card>
@@ -159,7 +163,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { createBill } from '@/api/bill'
@@ -171,6 +175,12 @@ import moment from 'moment'
 const router = useRouter()
 const formRef = ref(null)
 const submitting = ref(false)
+
+// 移动端响应式检测
+const isMobile = ref(false)
+const checkMobile = () => {
+  isMobile.value = window.innerWidth <= 768
+}
 
 // 数据
 const accounts = ref([])
@@ -252,19 +262,19 @@ const fetchCategories = async () => {
 const handleSubmit = async () => {
   const valid = await formRef.value.validate().catch(() => false)
   if (!valid) return
-  
+
   // 转账不需要分类
   if (form.type !== 'transfer' && !form.category_id) {
     ElMessage.warning('请选择分类')
     return
   }
-  
+
   // 转账需要验证账户不能相同
   if (form.type === 'transfer' && form.account_id === form.to_account_id) {
     ElMessage.warning('转出账户和转入账户不能相同')
     return
   }
-  
+
   submitting.value = true
   try {
     const res = await createBill({
@@ -276,12 +286,10 @@ const handleSubmit = async () => {
       bill_time: form.bill_time,
       remark: form.remark
     })
-    
+
     if (res.code === 200) {
       ElMessage.success('记账成功')
       handleReset()
-      // 可以跳转到账单列表
-      // router.push('/bills')
     }
   } catch (error) {
     ElMessage.error(error.response?.data?.msg || '记账失败')
@@ -303,40 +311,51 @@ const handleReset = () => {
 }
 
 onMounted(() => {
+  checkMobile()
+  window.addEventListener('resize', checkMobile)
   fetchAccounts()
   fetchCategories()
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', checkMobile)
 })
 </script>
 
 <style scoped lang="scss">
 .add-bill-page {
   margin: 0 auto;
-  
+
   .bill-form {
     .amount-input {
       width: 200px;
     }
-    
+
+    .full-width-select {
+      width: 100%;
+    }
+
     .quick-amount {
-      margin-top: 10px;
-      
+
       .quick-amount-tag {
-        margin-right: 10px;
+        margin-left: 5px;
+        margin-right: 5px;
+        margin-top: 10px;
         margin-bottom: 10px;
         cursor: pointer;
-        
+
         &:hover {
           background: #409EFF;
           color: #fff;
         }
       }
     }
-    
+
     .category-list {
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
-      
+
       .category-item {
         display: flex;
         flex-direction: column;
@@ -348,31 +367,108 @@ onMounted(() => {
         border-radius: 8px;
         cursor: pointer;
         transition: all 0.3s;
-        
+
         .el-icon {
           font-size: 24px;
           margin-bottom: 5px;
           color: #606266;
         }
-        
+
         span {
           font-size: 12px;
           color: #606266;
         }
-        
+
         &:hover {
           border-color: #409EFF;
           background: #f5f7fa;
         }
-        
+
         &.active {
           border-color: #409EFF;
           background: #ecf5ff;
-          
+
           .el-icon,
           span {
             color: #409EFF;
           }
+        }
+      }
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .submit-btn {
+      min-width: 100px;
+    }
+  }
+}
+
+/* ========== 移动端H5适配 ========== */
+@media (max-width: 768px) {
+  .add-bill-page {
+    .bill-form {
+      /* 类型选择按钮组全宽 */
+      .type-radio-group {
+        display: flex;
+        width: 100%;
+
+        :deep(.el-radio-button) {
+          flex: 1;
+
+          .el-radio-button__inner {
+            width: 100%;
+            padding: 10px;
+            font-size: 13px;
+          }
+        }
+      }
+
+      .amount-input {
+        width: 100% !important;
+
+        :deep(.el-input__wrapper) {
+          width: 100%;
+        }
+      }
+
+      .quick-amount {
+        .quick-amount-tag {
+          margin-right: 6px;
+          margin-bottom: 6px;
+          padding: 0 10px;
+          height: 28px;
+          line-height: 26px;
+          font-size: 12px;
+        }
+      }
+
+      .category-list {
+        gap: 8px;
+
+        .category-item {
+          width: 68px;
+          height: 68px;
+
+          .el-icon {
+            font-size: 20px;
+          }
+
+          span {
+            font-size: 11px;
+          }
+        }
+      }
+
+      .form-actions {
+        width: 100%;
+
+        .submit-btn {
+          flex: 1;
+          min-width: 0;
         }
       }
     }

@@ -2,9 +2,9 @@
   <div class="bills-page">
     <!-- 筛选条件 -->
     <el-card shadow="hover" class="filter-card">
-      <el-form :model="filterForm" inline>
+      <el-form :model="filterForm" :inline="!isMobile" :label-position="isMobile ? 'top' : 'right'" class="filter-form">
         <el-form-item label="账户">
-          <el-select v-model="filterForm.account_id" placeholder="全部账户" style="width: 120px" clearable>
+          <el-select v-model="filterForm.account_id" placeholder="全部账户" clearable class="filter-select">
             <el-option
               v-for="account in accounts"
               :key="account.id"
@@ -15,15 +15,15 @@
         </el-form-item>
 
         <el-form-item label="类型">
-          <el-select v-model="filterForm.type" placeholder="全部类型" style="width: 120px" clearable>
+          <el-select v-model="filterForm.type" placeholder="全部类型" clearable class="filter-select">
             <el-option label="支出" value="expense" />
             <el-option label="收入" value="income" />
             <el-option label="转账" value="transfer" />
           </el-select>
         </el-form-item>
-        
+
         <el-form-item label="分类">
-          <el-select v-model="filterForm.category_id" placeholder="全部分类" style="width: 120px" clearable>
+          <el-select v-model="filterForm.category_id" placeholder="全部分类" clearable class="filter-select">
             <el-option-group label="支出">
               <el-option
                 v-for="cat in expenseCategories"
@@ -42,8 +42,8 @@
             </el-option-group>
           </el-select>
         </el-form-item>
-        
-        <el-form-item label="日期" >
+
+        <el-form-item label="日期">
           <el-date-picker
             v-model="dateRange"
             type="daterange"
@@ -51,29 +51,33 @@
             start-placeholder="开始日期"
             end-placeholder="结束日期"
             value-format="YYYY-MM-DD"
+            class="filter-date"
           />
         </el-form-item>
-        
+
         <el-form-item label="关键词">
           <el-input
             v-model="filterForm.keyword"
             placeholder="搜索备注"
             clearable
-            style="width: 300px"
+            style="width: 300px" 
+            class="filter-input"
           />
         </el-form-item>
-        
+
         <el-form-item>
-          <el-button type="primary" @click="handleSearch">
-            <el-icon><Search /></el-icon>查询
-          </el-button>
-          <el-button @click="handleReset">
-            <el-icon><RefreshRight /></el-icon>重置
-          </el-button>
+          <div class="filter-actions">
+            <el-button type="primary" @click="handleSearch">
+              <el-icon><Search /></el-icon>查询
+            </el-button>
+            <el-button @click="handleReset">
+              <el-icon><RefreshRight /></el-icon>重置
+            </el-button>
+          </div>
         </el-form-item>
       </el-form>
     </el-card>
-    
+
     <!-- 账单列表 -->
     <el-card shadow="hover" class="list-card">
       <template #header>
@@ -84,70 +88,115 @@
           </el-button>
         </div>
       </template>
-      
-      <el-table
-        v-loading="loading"
-        :data="billList"
-        stripe
-        style="width: 100%"
-      >
-        <el-table-column label="类型" width="80">
-          <template #default="{ row }">
-            <el-tag :type="getTypeTagType(row.type)" size="small">
-              {{ getTypeText(row.type) }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        
-        <el-table-column label="分类" width="120">
-          <template #default="{ row }">
-            {{ row.category_name || '-' }}
-          </template>
-        </el-table-column>
-        
-        <el-table-column label="金额" width="120">
-          <template #default="{ row }">
-            <span :class="getAmountClass(row.type)">
-              {{ getAmountPrefix(row.type) }}¥{{ formatAmount(row.amount) }}
-            </span>
-          </template>
-        </el-table-column>
-        
-        <el-table-column label="账户" min-width="150">
-          <template #default="{ row }">
-            <div v-if="row.type === 'transfer'">
-              {{ row.account_name }} → {{ row.to_account_name }}
+
+      <!-- 桌面端：表格展示 -->
+      <div v-if="!isMobile" class="table-wrapper">
+        <el-table
+          v-loading="loading"
+          :data="billList"
+          stripe
+          style="width: 100%"
+        >
+          <el-table-column label="类型" width="80">
+            <template #default="{ row }">
+              <el-tag :type="getTypeTagType(row.type)" size="small">
+                {{ getTypeText(row.type) }}
+              </el-tag>
+            </template>
+          </el-table-column>
+
+          <el-table-column label="分类" width="120">
+            <template #default="{ row }">
+              {{ row.category_name || '-' }}
+            </template>
+          </el-table-column>
+
+          <el-table-column label="金额" width="120">
+            <template #default="{ row }">
+              <span :class="getAmountClass(row.type)">
+                {{ getAmountPrefix(row.type) }}¥{{ formatAmount(row.amount) }}
+              </span>
+            </template>
+          </el-table-column>
+
+          <el-table-column label="账户" min-width="150">
+            <template #default="{ row }">
+              <div v-if="row.type === 'transfer'">
+                {{ row.account_name }} → {{ row.to_account_name }}
+              </div>
+              <div v-else>
+                {{ row.account_name }}
+              </div>
+            </template>
+          </el-table-column>
+
+          <el-table-column label="备注" min-width="150">
+            <template #default="{ row }">
+              {{ row.remark || '-' }}
+            </template>
+          </el-table-column>
+
+          <el-table-column label="时间" width="150">
+            <template #default="{ row }">
+              {{ formatDateTime(row.bill_time) }}
+            </template>
+          </el-table-column>
+
+          <el-table-column label="操作" width="150" fixed="right">
+            <template #default="{ row }">
+              <el-button type="primary" link @click="handleEdit(row)">
+                <el-icon><Edit /></el-icon>编辑
+              </el-button>
+              <el-button type="danger" link @click="handleDelete(row)">
+                <el-icon><Delete /></el-icon>删除
+              </el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
+
+      <!-- 移动端：卡片列表展示 -->
+      <div v-else class="mobile-bill-list">
+        <div v-if="billList.length === 0" class="empty-data">
+          <el-empty description="暂无账单" />
+        </div>
+        <div
+          v-for="bill in billList"
+          :key="bill.id"
+          class="mobile-bill-item"
+        >
+          <div class="mobile-bill-main">
+            <div class="mobile-bill-left">
+              <el-tag :type="getTypeTagType(bill.type)" size="small" class="type-tag">
+                {{ getTypeText(bill.type) }}
+              </el-tag>
+              <div class="mobile-bill-category">{{ bill.category_name || '-' }}</div>
             </div>
-            <div v-else>
-              {{ row.account_name }}
+            <div class="mobile-bill-amount" :class="getAmountClass(bill.type)">
+              {{ getAmountPrefix(bill.type) }}¥{{ formatAmount(bill.amount) }}
             </div>
-          </template>
-        </el-table-column>
-        
-        <el-table-column label="备注" min-width="150">
-          <template #default="{ row }">
-            {{ row.remark || '-' }}
-          </template>
-        </el-table-column>
-        
-        <el-table-column label="时间" width="150">
-          <template #default="{ row }">
-            {{ formatDateTime(row.bill_time) }}
-          </template>
-        </el-table-column>
-        
-        <el-table-column label="操作" width="150" fixed="right">
-          <template #default="{ row }">
-            <el-button type="primary" link @click="handleEdit(row)">
+          </div>
+          <div class="mobile-bill-detail">
+            <div v-if="bill.type === 'transfer'" class="detail-item">
+              {{ bill.account_name }} → {{ bill.to_account_name }}
+            </div>
+            <div v-else class="detail-item">
+              {{ bill.account_name }}
+            </div>
+            <div v-if="bill.remark" class="detail-item remark">备注：{{ bill.remark }}</div>
+            <div class="detail-item time">{{ formatDateTime(bill.bill_time) }}</div>
+          </div>
+          <div class="mobile-bill-actions">
+            <el-button type="primary" link size="small" @click="handleEdit(bill)">
               <el-icon><Edit /></el-icon>编辑
             </el-button>
-            <el-button type="danger" link @click="handleDelete(row)">
+            <el-button type="danger" link size="small" @click="handleDelete(bill)">
               <el-icon><Delete /></el-icon>删除
             </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-      
+          </div>
+        </div>
+      </div>
+
       <!-- 分页 -->
       <div class="pagination">
         <el-pagination
@@ -155,24 +204,27 @@
           v-model:page-size="pagination.pageSize"
           :page-sizes="[10, 20, 50, 100]"
           :total="pagination.total"
-          layout="total, sizes, prev, pager, next, jumper"
+          :layout="isMobile ? 'total, prev, pager, next' : 'total, sizes, prev, pager, next, jumper'"
+          :small="isMobile"
           @size-change="handleSizeChange"
           @current-change="handlePageChange"
         />
       </div>
     </el-card>
-    
+
     <!-- 编辑弹窗 -->
     <el-dialog
       v-model="editDialogVisible"
       title="编辑账单"
-      width="600px"
+      :width="isMobile ? '92%' : '600px'"
+      :close-on-click-modal="false"
     >
       <el-form
         ref="editFormRef"
         :model="editForm"
         :rules="editRules"
-        label-width="100px"
+        :label-width="isMobile ? '80px' : '100px'"
+        :label-position="isMobile ? 'top' : 'right'"
       >
         <el-form-item label="类型">
           <el-radio-group v-model="editForm.type" disabled>
@@ -181,18 +233,18 @@
             <el-radio-button label="transfer">转账</el-radio-button>
           </el-radio-group>
         </el-form-item>
-        
+
         <el-form-item label="金额" prop="amount">
           <el-input-number
             v-model="editForm.amount"
             :min="0.01"
             :precision="2"
-            style="width: 200px"
+            style="width: 100%"
           />
         </el-form-item>
-        
+
         <el-form-item label="账户" prop="account_id">
-          <el-select v-model="editForm.account_id" style="width: 100%">
+          <el-select v-model="editForm.account_id" class="full-width">
             <el-option
               v-for="account in accounts"
               :key="account.id"
@@ -201,9 +253,9 @@
             />
           </el-select>
         </el-form-item>
-        
+
         <el-form-item v-if="editForm.type === 'transfer'" label="目标账户" prop="to_account_id">
-          <el-select v-model="editForm.to_account_id" style="width: 100%">
+          <el-select v-model="editForm.to_account_id" class="full-width">
             <el-option
               v-for="account in accounts.filter(a => a.id !== editForm.account_id)"
               :key="account.id"
@@ -212,9 +264,9 @@
             />
           </el-select>
         </el-form-item>
-        
+
         <el-form-item v-if="editForm.type !== 'transfer'" label="分类" prop="category_id">
-          <el-select v-model="editForm.category_id" style="width: 100%">
+          <el-select v-model="editForm.category_id" class="full-width">
             <el-option
               v-for="cat in editForm.type === 'expense' ? expenseCategories : incomeCategories"
               :key="cat.id"
@@ -223,45 +275,53 @@
             />
           </el-select>
         </el-form-item>
-        
+
         <el-form-item label="日期" prop="bill_time">
           <el-date-picker
             v-model="editForm.bill_time"
             type="datetime"
-            style="width: 100%"
+            class="full-width"
             format="YYYY-MM-DD HH:mm"
             value-format="YYYY-MM-DD HH:mm:ss"
           />
         </el-form-item>
-        
+
         <el-form-item label="备注">
           <el-input
             v-model="editForm.remark"
             type="textarea"
-            :rows="3"
+            :rows="isMobile ? 2 : 3"
             maxlength="200"
             show-word-limit
           />
         </el-form-item>
       </el-form>
-      
+
       <template #footer>
-        <el-button @click="editDialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="editLoading" @click="handleEditSubmit">
-          保存
-        </el-button>
+        <div class="dialog-footer">
+          <el-button @click="editDialogVisible = false">取消</el-button>
+          <el-button type="primary" :loading="editLoading" @click="handleEditSubmit">
+            保存
+          </el-button>
+        </div>
       </template>
     </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getBillList, deleteBill, updateBill } from '@/api/bill'
 import { getAccountList } from '@/api/account'
 import { getCategoryList } from '@/api/category'
 import { formatAmount, formatDateTime } from '@/utils/format'
+
+// 移动端响应式检测
+const isMobile = ref(false)
+const checkMobile = () => {
+  isMobile.value = window.innerWidth <= 768
+}
 
 // 数据
 const loading = ref(false)
@@ -355,12 +415,12 @@ const fetchBills = async () => {
       pageSize: pagination.pageSize,
       ...filterForm
     }
-    
+
     if (dateRange.value && dateRange.value.length === 2) {
       params.start_date = dateRange.value[0]
       params.end_date = dateRange.value[1]
     }
-    
+
     const res = await getBillList(params)
     if (res.code === 200) {
       billList.value = res.data.list
@@ -442,7 +502,7 @@ const handleEdit = (row) => {
 const handleEditSubmit = async () => {
   const valid = await editFormRef.value.validate().catch(() => false)
   if (!valid) return
-  
+
   editLoading.value = true
   try {
     const res = await updateBill(editForm.id, {
@@ -453,7 +513,7 @@ const handleEditSubmit = async () => {
       bill_time: editForm.bill_time,
       remark: editForm.remark
     })
-    
+
     if (res.code === 200) {
       ElMessage.success('更新成功')
       editDialogVisible.value = false
@@ -486,9 +546,15 @@ const handleDelete = (row) => {
 }
 
 onMounted(() => {
+  checkMobile()
+  window.addEventListener('resize', checkMobile)
   fetchBills()
   fetchAccounts()
   fetchCategories()
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', checkMobile)
 })
 </script>
 
@@ -497,18 +563,130 @@ onMounted(() => {
   .filter-card {
     margin-bottom: 20px;
   }
-  
+
+  .filter-form {
+    .filter-select,
+    .filter-input,
+    .filter-date {
+      width: 100%;
+    }
+
+    .filter-actions {
+      display: flex;
+      gap: 10px;
+    }
+  }
+
   .list-card {
     .card-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
-    
+
+    .table-wrapper {
+      overflow-x: auto;
+    }
+
     .pagination {
       margin-top: 20px;
       display: flex;
       justify-content: flex-end;
+    }
+  }
+
+  /* 移动端卡片式账单列表 */
+  .mobile-bill-list {
+    .mobile-bill-item {
+      padding: 12px 0;
+      border-bottom: 1px solid #ebeef5;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      .mobile-bill-main {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+
+        .mobile-bill-left {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+
+          .type-tag {
+            flex-shrink: 0;
+          }
+
+          .mobile-bill-category {
+            font-size: 14px;
+            color: #303133;
+          }
+        }
+
+        .mobile-bill-amount {
+          font-size: 16px;
+          font-weight: 600;
+          flex-shrink: 0;
+        }
+      }
+
+      .mobile-bill-detail {
+        padding-left: 4px;
+        margin-bottom: 8px;
+
+        .detail-item {
+          font-size: 12px;
+          color: #909399;
+          margin-bottom: 4px;
+
+          &.remark {
+            color: #606266;
+          }
+
+          &.time {
+            font-size: 11px;
+          }
+        }
+      }
+
+      .mobile-bill-actions {
+        display: flex;
+        gap: 10px;
+        padding-left: 4px;
+      }
+    }
+  }
+
+  .dialog-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+
+  .full-width {
+    width: 100%;
+  }
+}
+
+/* ========== 移动端H5适配 ========== */
+@media (max-width: 768px) {
+  .bills-page {
+    .filter-card {
+      margin-bottom: 10px;
+
+      .filter-actions {
+        width: 100%;
+        justify-content: flex-end;
+      }
+    }
+
+    .list-card {
+      .pagination {
+        justify-content: center;
+      }
     }
   }
 }

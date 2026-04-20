@@ -1,68 +1,86 @@
 <template>
   <div class="dashboard-page">
     <!-- 统计卡片 -->
-    <el-row :gutter="20" class="stat-cards">
+    <el-row :gutter="isMobile ? 10 : 20" class="stat-cards">
       <el-col :xs="24" :sm="12" :lg="6">
         <el-card class="stat-card" shadow="hover">
-          <div class="stat-icon" style="background: #409EFF;">
-            <el-icon><Wallet /></el-icon>
-          </div>
-          <div class="stat-info">
-            <div class="stat-label">净资产</div>
-            <div class="stat-value" :class="netWorth >= 0 ? 'amount-income' : 'amount-expense'">
-              ¥{{ formatAmount(netWorth) }}
+          <div class="stat-content">
+            <div class="stat-icon" style="background: #409EFF;">
+              <el-icon>
+                <Wallet />
+              </el-icon>
+            </div>
+            <div class="stat-info">
+              <div class="stat-label">净资产</div>
+              <div class="stat-value" :class="netWorth >= 0 ? 'amount-income' : 'amount-expense'">
+                ¥{{ formatAmount(netWorth) }}
+              </div>
             </div>
           </div>
         </el-card>
       </el-col>
-      
+
       <el-col :xs="24" :sm="12" :lg="6">
         <el-card class="stat-card" shadow="hover">
-          <div class="stat-icon" style="background: #67c23a;">
-            <el-icon><Money /></el-icon>
-          </div>
-          <div class="stat-info">
-            <div class="stat-label">总资产</div>
-            <div class="stat-value amount-income">¥{{ formatAmount(totalAsset) }}</div>
+          <div class="stat-content">
+            <div class="stat-icon" style="background: #67c23a;">
+              <el-icon>
+                <Money />
+              </el-icon>
+            </div>
+            <div class="stat-info">
+              <div class="stat-label">总资产</div>
+              <div class="stat-value amount-income">¥{{ formatAmount(totalAsset) }}</div>
+            </div>
           </div>
         </el-card>
       </el-col>
-      
+
       <el-col :xs="24" :sm="12" :lg="6">
         <el-card class="stat-card" shadow="hover">
-          <div class="stat-icon" style="background: #f56c6c;">
-            <el-icon><CreditCard /></el-icon>
-          </div>
-          <div class="stat-info">
-            <div class="stat-label">总负债</div>
-            <div class="stat-value amount-expense">¥{{ formatAmount(totalLiability) }}</div>
+          <div class="stat-content">
+            <div class="stat-icon" style="background: #f56c6c;">
+              <el-icon>
+                <DocumentChecked />
+              </el-icon>
+            </div>
+            <div class="stat-info">
+              <div class="stat-label">总负债</div>
+              <div class="stat-value amount-expense">¥{{ formatAmount(totalLiability) }}</div>
+            </div>
           </div>
         </el-card>
       </el-col>
-      
+
       <el-col :xs="24" :sm="12" :lg="6">
         <el-card class="stat-card" shadow="hover">
-          <div class="stat-icon" style="background: #e6a23c;">
-            <el-icon><Calendar /></el-icon>
-          </div>
-          <div class="stat-info">
-            <div class="stat-label">本月结余</div>
-            <div class="stat-value" :class="monthBalance >= 0 ? 'amount-income' : 'amount-expense'">
-              ¥{{ formatAmount(monthBalance) }}
+          <div class="stat-content">
+            <div class="stat-icon" style="background: #e6a23c;">
+              <el-icon>
+                <Document />
+              </el-icon>
+            </div>
+            <div class="stat-info">
+              <div class="stat-label">本月结余</div>
+              <div class="stat-value" :class="monthBalance >= 0 ? 'amount-income' : 'amount-expense'">
+                ¥{{ formatAmount(monthBalance) }}
+              </div>
             </div>
           </div>
         </el-card>
       </el-col>
     </el-row>
-    
+
     <!-- 今日收支和本月收支 -->
-    <el-row :gutter="20" class="section">
+    <el-row :gutter="isMobile ? 10 : 20" class="section">
       <el-col :xs="24" :md="12">
         <el-card shadow="hover">
           <template #header>
             <div class="card-header">
               <span class="card-title">
-                <el-icon><Sunrise /></el-icon>
+                <el-icon>
+                  <Sunrise />
+                </el-icon>
                 今日收支
               </span>
               <span class="card-date">{{ today }}</span>
@@ -81,13 +99,15 @@
           </div>
         </el-card>
       </el-col>
-      
+
       <el-col :xs="24" :md="12">
         <el-card shadow="hover">
           <template #header>
             <div class="card-header">
               <span class="card-title">
-                <el-icon><Calendar /></el-icon>
+                <el-icon>
+                  <Calendar />
+                </el-icon>
                 本月收支
               </span>
               <span class="card-date">{{ currentMonth }}</span>
@@ -107,15 +127,17 @@
         </el-card>
       </el-col>
     </el-row>
-    
+
     <!-- 资产分布和近期账单 -->
-    <el-row :gutter="20" class="section">
-      <el-col :xs="24" :lg="12">
+    <el-row :gutter="isMobile ? 10 : 20" class="section">
+      <el-col :xs="24" :sm="12" :lg="12">
         <el-card shadow="hover" class="chart-card">
           <template #header>
             <div class="card-header">
               <span class="card-title">
-                <el-icon><PieChart /></el-icon>
+                <el-icon>
+                  <PieChart />
+                </el-icon>
                 资产分布
               </span>
             </div>
@@ -123,13 +145,15 @@
           <div ref="assetChartRef" class="chart-container"></div>
         </el-card>
       </el-col>
-      
-      <el-col :xs="24" :lg="12">
+
+      <el-col :xs="24" :sm="12" :lg="12">
         <el-card shadow="hover" class="bill-card">
           <template #header>
             <div class="card-header">
               <span class="card-title">
-                <el-icon><List /></el-icon>
+                <el-icon>
+                  <List />
+                </el-icon>
                 近期账单
               </span>
               <el-link type="primary" @click="$router.push('/bills')">查看全部</el-link>
@@ -139,16 +163,17 @@
             <el-empty description="暂无账单记录" />
           </div>
           <div v-else class="bill-list">
-            <div 
-              v-for="bill in recentBills" 
-              :key="bill.id" 
-              class="bill-item"
-              @click="viewBillDetail(bill)"
-            >
+            <div v-for="bill in recentBills" :key="bill.id" class="bill-item" @click="viewBillDetail(bill)">
               <div class="bill-icon" :class="bill.type">
-                <el-icon v-if="bill.type === 'income'"><Top /></el-icon>
-                <el-icon v-else-if="bill.type === 'expense'"><Bottom /></el-icon>
-                <el-icon v-else><Switch /></el-icon>
+                <el-icon v-if="bill.type === 'income'">
+                  <Top />
+                </el-icon>
+                <el-icon v-else-if="bill.type === 'expense'">
+                  <Bottom />
+                </el-icon>
+                <el-icon v-else>
+                  <Switch />
+                </el-icon>
               </div>
               <div class="bill-info">
                 <div class="bill-title">
@@ -169,7 +194,7 @@
         </el-card>
       </el-col>
     </el-row>
-    
+
     <!-- 账户列表 -->
     <el-row class="section">
       <el-col :span="24">
@@ -177,21 +202,17 @@
           <template #header>
             <div class="card-header">
               <span class="card-title">
-                <el-icon><WalletFilled /></el-icon>
+                <el-icon>
+                  <WalletFilled />
+                </el-icon>
                 我的账户
               </span>
               <el-link type="primary" @click="$router.push('/accounts')">管理账户</el-link>
             </div>
           </template>
-          <el-row :gutter="15">
-            <el-col 
-              v-for="account in accounts.slice(0, 6)" 
-              :key="account.id" 
-              :xs="24" 
-              :sm="12" 
-              :md="8" 
-              :lg="6"
-            >
+          <el-row :gutter="isMobile ? 10 : 15">
+            <el-col v-for="account in accounts.slice(0, isMobile ? 4 : 6)" :key="account.id" :xs="12" :sm="12" :md="8"
+              :lg="6">
               <div class="account-item" :class="account.type">
                 <div class="account-name">{{ account.name }}</div>
                 <div class="account-balance" :class="account.type">
@@ -207,7 +228,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, nextTick } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import * as echarts from 'echarts'
 import { ElMessage } from 'element-plus'
@@ -227,6 +248,12 @@ const recentBills = ref([])
 const accounts = ref([])
 const assetChartRef = ref(null)
 
+// 移动端响应式检测
+const isMobile = ref(false)
+const checkMobile = () => {
+  isMobile.value = window.innerWidth <= 768
+}
+
 // 计算属性
 const netWorth = computed(() => totalAsset.value - totalLiability.value)
 const monthBalance = computed(() => monthStats.value.income - monthStats.value.expense)
@@ -238,32 +265,41 @@ let assetChart = null
 
 const initAssetChart = () => {
   if (!assetChartRef.value) return
-  
+
   const assetAccounts = accounts.value.filter(a => a.type === 'asset' && a.balance > 0)
-  
+
   if (assetAccounts.length === 0) {
     assetChartRef.value.innerHTML = '<div class="empty-chart">暂无资产数据</div>'
     return
   }
-  
+
   assetChart = echarts.init(assetChartRef.value)
-  
+
+  // 移动端图表调整配置
+  const isMobileView = isMobile.value
+
   const option = {
     tooltip: {
       trigger: 'item',
       formatter: '{b}: ¥{c} ({d}%)'
     },
     legend: {
-      orient: 'vertical',
-      right: 10,
-      top: 'center'
+      orient: isMobileView ? 'horizontal' : 'vertical',
+      right: isMobileView ? 'auto' : 10,
+      bottom: isMobileView ? 0 : 'auto',
+      top: isMobileView ? 'auto' : 'center',
+      itemWidth: 10,
+      itemHeight: 10,
+      textStyle: {
+        fontSize: isMobileView ? 11 : 12
+      }
     },
     series: [
       {
         name: '资产分布',
         type: 'pie',
-        radius: ['40%', '70%'],
-        center: ['35%', '50%'],
+        radius: isMobileView ? ['35%', '60%'] : ['40%', '70%'],
+        center: isMobileView ? ['50%', '42%'] : ['35%', '50%'],
         avoidLabelOverlap: false,
         itemStyle: {
           borderRadius: 10,
@@ -277,7 +313,7 @@ const initAssetChart = () => {
         emphasis: {
           label: {
             show: true,
-            fontSize: 16,
+            fontSize: isMobileView ? 14 : 16,
             fontWeight: 'bold'
           }
         },
@@ -291,7 +327,7 @@ const initAssetChart = () => {
       }
     ]
   }
-  
+
   assetChart.setOption(option)
 }
 
@@ -308,7 +344,7 @@ const fetchDashboardData = async () => {
       monthStats.value = data.month
       recentBills.value = data.recentBills
       accounts.value = data.accounts
-      
+
       // 初始化图表
       nextTick(() => {
         initAssetChart()
@@ -323,18 +359,30 @@ const fetchDashboardData = async () => {
 
 // 查看账单详情
 const viewBillDetail = (bill) => {
-  // 可以打开详情弹窗或跳转详情页
   console.log('查看账单详情:', bill)
 }
 
 // 窗口大小改变时重新渲染图表
 const handleResize = () => {
-  assetChart && assetChart.resize()
+  checkMobile()
+  if (assetChart) {
+    assetChart.resize()
+    // 移动端下需要重新设置配置项以调整图例和位置
+    initAssetChart()
+  }
 }
 
 onMounted(() => {
+  checkMobile()
   fetchDashboardData()
   window.addEventListener('resize', handleResize)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize)
+  if (assetChart) {
+    assetChart.dispose()
+  }
 })
 </script>
 
@@ -342,53 +390,48 @@ onMounted(() => {
 .dashboard-page {
   .stat-cards {
     margin-bottom: 20px;
-  }
-  
-  .stat-card {
-    display: flex;
-    align-items: center;
-    padding: 10px;
-    
-    .stat-icon {
-      width: 60px;
-      height: 60px;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-right: 15px;
-      
-      .el-icon {
-        font-size: 32px;
-        color: #fff;
-      }
-    }
-    
-    .stat-info {
-      flex: 1;
-      
-      .stat-label {
-        font-size: 14px;
-        color: #909399;
-        margin-bottom: 5px;
-      }
-      
-      .stat-value {
-        font-size: 24px;
-        font-weight: 600;
+
+    .stat-card {
+      .stat-content {
+        display: flex;
+        align-items: center;
+
+        .stat-icon {  
+          width: 60px;
+          height: 60px;
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 28px;
+          color: #fff;
+          margin-right: 15px;
+        }
+
+        .stat-info {
+          .stat-value {
+            font-size: 24px;
+            font-weight: 600;
+          }
+
+          .stat-label {
+            font-size: 14px;
+            margin-top: 5px;
+          }
+        }
       }
     }
   }
-  
+
   .section {
     margin-bottom: 20px;
   }
-  
+
   .card-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    
+
     .card-title {
       display: flex;
       align-items: center;
@@ -397,40 +440,40 @@ onMounted(() => {
       font-weight: 600;
       color: #303133;
     }
-    
+
     .card-date {
       font-size: 14px;
       color: #909399;
     }
   }
-  
+
   .day-stats {
     display: flex;
     justify-content: space-around;
     align-items: center;
     padding: 20px 0;
-    
+
     .day-stat-item {
       text-align: center;
       flex: 1;
-      
+
       .day-stat-label {
         font-size: 14px;
         color: #909399;
         margin-bottom: 10px;
       }
-      
+
       .day-stat-value {
         font-size: 28px;
         font-weight: 600;
       }
     }
   }
-  
+
   .chart-card {
     .chart-container {
       height: 300px;
-      
+
       .empty-chart {
         height: 100%;
         display: flex;
@@ -440,9 +483,10 @@ onMounted(() => {
       }
     }
   }
-  
+
   .bill-card {
     .bill-list {
+      height: 300px;
       .bill-item {
         display: flex;
         align-items: center;
@@ -450,15 +494,15 @@ onMounted(() => {
         border-bottom: 1px solid #ebeef5;
         cursor: pointer;
         transition: background 0.3s;
-        
+
         &:hover {
           background: #f5f7fa;
         }
-        
+
         &:last-child {
           border-bottom: none;
         }
-        
+
         .bill-icon {
           width: 40px;
           height: 40px;
@@ -467,59 +511,66 @@ onMounted(() => {
           align-items: center;
           justify-content: center;
           margin-right: 12px;
-          
+          flex-shrink: 0;
+
           &.income {
             background: #f0f9eb;
             color: #67c23a;
           }
-          
+
           &.expense {
             background: #fef0f0;
             color: #f56c6c;
           }
-          
+
           &.transfer {
             background: #f4f4f5;
             color: #909399;
           }
-          
+
           .el-icon {
             font-size: 20px;
           }
         }
-        
+
         .bill-info {
           flex: 1;
-          
+          min-width: 0;
+
           .bill-title {
             font-size: 14px;
             color: #303133;
             margin-bottom: 4px;
-            
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+
             .bill-remark {
               color: #909399;
               font-size: 12px;
             }
           }
-          
+
           .bill-meta {
             font-size: 12px;
             color: #909399;
           }
         }
-        
+
         .bill-amount {
           font-size: 16px;
           font-weight: 600;
-          
+          flex-shrink: 0;
+          margin-left: 8px;
+
           &.income {
             color: #67c23a;
           }
-          
+
           &.expense {
             color: #f56c6c;
           }
-          
+
           &.transfer {
             color: #909399;
           }
@@ -527,37 +578,118 @@ onMounted(() => {
       }
     }
   }
-  
+
   .account-item {
     background: #f5f7fa;
     border-radius: 8px;
     padding: 15px;
     margin-bottom: 15px;
-    
+
     &.asset {
       border-left: 4px solid #67c23a;
     }
-    
+
     &.liability {
       border-left: 4px solid #f56c6c;
     }
-    
+
     .account-name {
       font-size: 14px;
       color: #606266;
       margin-bottom: 8px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
-    
+
     .account-balance {
       font-size: 18px;
       font-weight: 600;
-      
+
       &.asset {
         color: #67c23a;
       }
-      
+
       &.liability {
         color: #f56c6c;
+      }
+    }
+  }
+}
+
+/* ========== 移动端H5适配 ========== */
+@media (max-width: 768px) {
+  .dashboard-page {
+    .stat-cards {
+      margin-bottom: 10px;
+    }
+
+    .stat-card {
+      padding: 8px;
+      margin-bottom: 10px;
+
+      .stat-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 10px;
+        margin-right: 10px;
+
+        .el-icon {
+          font-size: 24px;
+        }
+      }
+
+      .stat-info {
+        .stat-label {
+          font-size: 12px;
+        }
+
+        .stat-value {
+          font-size: 18px;
+        }
+      }
+    }
+
+    .section {
+      margin-bottom: 0px;
+    }
+
+    .day-stats {
+      padding: 15px 0;
+
+      .day-stat-value {
+        font-size: 20px !important;
+      }
+    }
+
+    .chart-card .chart-container {
+      height: 240px;
+    }
+
+    .bill-item {
+      padding: 10px 0 !important;
+
+      .bill-icon {
+        width: 36px !important;
+        height: 36px !important;
+        margin-right: 10px !important;
+      }
+
+      .bill-amount {
+        font-size: 14px !important;
+      }
+    }
+
+    .account-item {
+      padding: 10px;
+      margin-bottom: 10px;
+
+      .account-name {
+        font-size: 12px;
+      }
+
+      .account-balance {
+        font-size: 16px;
       }
     }
   }

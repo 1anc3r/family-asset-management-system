@@ -2,16 +2,16 @@
   <div class="statistics-page">
     <!-- 日期筛选 -->
     <el-card shadow="hover" class="filter-card">
-      <el-form inline>
+      <el-form :inline="!isMobile" :label-position="isMobile ? 'top' : 'right'">
         <el-form-item label="时间范围">
-          <el-radio-group v-model="timeRange" @change="handleTimeRangeChange">
+          <el-radio-group v-model="timeRange" size="small" @change="handleTimeRangeChange">
             <el-radio-button label="month">本月</el-radio-button>
             <el-radio-button label="lastMonth">上月</el-radio-button>
-            <el-radio-button label="quarter">本季度</el-radio-button>
+            <el-radio-button label="quarter">本季</el-radio-button>
             <el-radio-button label="year">本年</el-radio-button>
           </el-radio-group>
         </el-form-item>
-        
+
         <el-form-item label="自定义">
           <el-date-picker
             v-model="dateRange"
@@ -21,13 +21,14 @@
             end-placeholder="结束日期"
             value-format="YYYY-MM-DD"
             @change="handleDateChange"
+            :style="isMobile ? { width: '100%' } : {}"
           />
         </el-form-item>
       </el-form>
     </el-card>
-    
+
     <!-- 收支概览 -->
-    <el-row :gutter="20" class="section">
+    <el-row :gutter="isMobile ? 10 : 20" class="section">
       <el-col :xs="24" :sm="12">
         <el-card shadow="hover">
           <template #header>
@@ -53,9 +54,9 @@
         </el-card>
       </el-col>
     </el-row>
-    
+
     <!-- 支出分类统计 -->
-    <el-row :gutter="20" class="section">
+    <el-row :gutter="isMobile ? 10 : 20" class="section">
       <el-col :xs="24" :lg="12">
         <el-card shadow="hover" class="chart-card">
           <template #header>
@@ -69,7 +70,7 @@
           <div ref="expenseChartRef" class="chart-container"></div>
         </el-card>
       </el-col>
-      
+
       <el-col :xs="24" :lg="12">
         <el-card shadow="hover" class="chart-card">
           <template #header>
@@ -84,7 +85,7 @@
         </el-card>
       </el-col>
     </el-row>
-    
+
     <!-- 支出分类排行 -->
     <el-card shadow="hover" class="section">
       <template #header>
@@ -95,47 +96,94 @@
           </span>
         </div>
       </template>
-      
-      <el-table :data="expenseCategoryList" stripe>
-        <el-table-column type="index" width="50" />
-        <el-table-column label="分类" width="150">
-          <template #default="{ row }">
-            <div class="category-cell">
-              <el-icon v-if="row.category_icon"><component :is="row.category_icon" /></el-icon>
-              <span>{{ row.category_name || '未分类' }}</span>
+
+      <!-- 桌面端使用表格 -->
+      <div v-if="!isMobile" class="table-wrapper">
+        <el-table :data="expenseCategoryList" stripe>
+          <el-table-column type="index" width="50" />
+          <el-table-column label="分类" width="150">
+            <template #default="{ row }">
+              <div class="category-cell">
+                <el-icon v-if="row.category_icon"><component :is="row.category_icon" /></el-icon>
+                <span>{{ row.category_name || '未分类' }}</span>
+              </div>
+            </template>
+          </el-table-column>
+          <el-table-column label="金额" width="150">
+            <template #default="{ row }">
+              <span class="amount-expense">¥{{ formatAmount(row.total_amount) }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="笔数" width="100">
+            <template #default="{ row }">
+              {{ row.bill_count }}笔
+            </template>
+          </el-table-column>
+          <el-table-column label="占比">
+            <template #default="{ row }">
+              <el-progress
+                :percentage="getPercentage(row.total_amount, totalExpense)"
+                :color="'#f56c6c'"
+              />
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
+
+      <!-- 移动端使用卡片列表 -->
+      <div v-else class="mobile-rank-list">
+        <div
+          v-for="(item, index) in expenseCategoryList"
+          :key="index"
+          class="mobile-rank-item"
+        >
+          <div class="rank-index">{{ index + 1 }}</div>
+          <div class="rank-info">
+            <div class="rank-name">
+              <el-icon v-if="item.category_icon"><component :is="item.category_icon" /></el-icon>
+              <span>{{ item.category_name || '未分类' }}</span>
             </div>
-          </template>
-        </el-table-column>
-        <el-table-column label="金额" width="150">
-          <template #default="{ row }">
-            <span class="amount-expense">¥{{ formatAmount(row.total_amount) }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="笔数" width="100">
-          <template #default="{ row }">
-            {{ row.bill_count }}笔
-          </template>
-        </el-table-column>
-        <el-table-column label="占比">
-          <template #default="{ row }">
-            <el-progress
-              :percentage="getPercentage(row.total_amount, totalExpense)"
-              :color="'#f56c6c'"
-            />
-          </template>
-        </el-table-column>
-      </el-table>
+            <div class="rank-progress">
+              <el-progress
+                :percentage="getPercentage(item.total_amount, totalExpense)"
+                :color="'#f56c6c'"
+                :stroke-width="8"
+              />
+            </div>
+          </div>
+          <div class="rank-amount">
+            <div class="amount-text amount-expense">¥{{ formatAmount(item.total_amount) }}</div>
+            <div class="count-text">{{ item.bill_count }}笔</div>
+          </div>
+        </div>
+      </div>
     </el-card>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, nextTick } from 'vue'
+import { ref, reactive, onMounted, onUnmounted, nextTick } from 'vue'
 import * as echarts from 'echarts'
 import { ElMessage } from 'element-plus'
 import { getCategoryStats, getMonthlyTrend } from '@/api/statistics'
 import { formatAmount } from '@/utils/format'
 import moment from 'moment'
+
+// 移动端响应式检测
+const isMobile = ref(false)
+const checkMobile = () => {
+  const newIsMobile = window.innerWidth <= 768
+  // 如果移动端状态发生变化，需要重新渲染图表
+  if (isMobile.value !== newIsMobile) {
+    isMobile.value = newIsMobile
+    nextTick(() => {
+      initExpenseChart()
+      initTrendChart()
+    })
+  } else {
+    isMobile.value = newIsMobile
+  }
+}
 
 // 数据
 const loading = ref(false)
@@ -154,30 +202,43 @@ let trendChart = null
 // 初始化支出分类图表
 const initExpenseChart = () => {
   if (!expenseChartRef.value) return
-  
+
+  // 清理旧图表实例
+  if (expenseChart) {
+    expenseChart.dispose()
+  }
+
   if (expenseCategoryList.value.length === 0) {
     expenseChartRef.value.innerHTML = '<div class="empty-chart">暂无支出数据</div>'
     return
   }
-  
+
   expenseChart = echarts.init(expenseChartRef.value)
-  
+
+  const isMobileView = isMobile.value
+
   const option = {
     tooltip: {
       trigger: 'item',
       formatter: '{b}: ¥{c} ({d}%)'
     },
     legend: {
-      orient: 'vertical',
-      right: 10,
-      top: 'center'
+      orient: isMobileView ? 'horizontal' : 'vertical',
+      right: isMobileView ? 'auto' : 10,
+      bottom: isMobileView ? 0 : 'auto',
+      top: isMobileView ? 'auto' : 'center',
+      itemWidth: 10,
+      itemHeight: 10,
+      textStyle: {
+        fontSize: isMobileView ? 11 : 12
+      }
     },
     series: [
       {
         name: '支出分类',
         type: 'pie',
-        radius: ['40%', '70%'],
-        center: ['35%', '50%'],
+        radius: isMobileView ? ['35%', '60%'] : ['40%', '70%'],
+        center: isMobileView ? ['50%', '42%'] : ['35%', '50%'],
         avoidLabelOverlap: false,
         itemStyle: {
           borderRadius: 10,
@@ -190,7 +251,7 @@ const initExpenseChart = () => {
         emphasis: {
           label: {
             show: true,
-            fontSize: 14,
+            fontSize: isMobileView ? 13 : 14,
             fontWeight: 'bold'
           }
         },
@@ -201,21 +262,28 @@ const initExpenseChart = () => {
       }
     ]
   }
-  
+
   expenseChart.setOption(option)
 }
 
 // 初始化趋势图表
 const initTrendChart = async () => {
   if (!trendChartRef.value) return
-  
+
+  // 清理旧图表实例
+  if (trendChart) {
+    trendChart.dispose()
+  }
+
   trendChart = echarts.init(trendChartRef.value)
-  
+
+  const isMobileView = isMobile.value
+
   try {
     const res = await getMonthlyTrend(6)
     if (res.code === 200) {
       const data = res.data.list
-      
+
       const option = {
         tooltip: {
           trigger: 'axis',
@@ -225,23 +293,33 @@ const initTrendChart = async () => {
         },
         legend: {
           data: ['收入', '支出'],
-          bottom: 0
+          bottom: 0,
+          itemWidth: 12,
+          itemHeight: 12,
+          textStyle: {
+            fontSize: isMobileView ? 11 : 12
+          }
         },
         grid: {
-          left: '3%',
-          right: '4%',
-          bottom: '15%',
+          left: isMobileView ? '2%' : '3%',
+          right: isMobileView ? '2%' : '4%',
+          bottom: isMobileView ? '18%' : '15%',
+          top: '10%',
           containLabel: true
         },
         xAxis: {
           type: 'category',
           data: data.map(item => item.month),
           axisLabel: {
-            rotate: 45
+            rotate: isMobileView ? 30 : 45,
+            fontSize: isMobileView ? 10 : 11
           }
         },
         yAxis: {
-          type: 'value'
+          type: 'value',
+          axisLabel: {
+            fontSize: isMobileView ? 10 : 11
+          }
         },
         series: [
           {
@@ -262,7 +340,7 @@ const initTrendChart = async () => {
           }
         ]
       }
-      
+
       trendChart.setOption(option)
     }
   } catch (error) {
@@ -279,12 +357,12 @@ const fetchStatistics = async () => {
       start_date: dateRange.value[0],
       end_date: dateRange.value[1]
     }
-    
+
     const res = await getCategoryStats(params)
     if (res.code === 200) {
       expenseCategoryList.value = res.data.list
       totalExpense.value = res.data.total
-      
+
       // 同时获取收入数据
       const incomeRes = await getCategoryStats({
         type: 'income',
@@ -294,7 +372,7 @@ const fetchStatistics = async () => {
       if (incomeRes.code === 200) {
         totalIncome.value = incomeRes.data.total
       }
-      
+
       // 初始化图表
       nextTick(() => {
         initExpenseChart()
@@ -316,7 +394,7 @@ const getPercentage = (amount, total) => {
 // 时间范围切换
 const handleTimeRangeChange = (val) => {
   const now = moment()
-  
+
   switch (val) {
     case 'month':
       dateRange.value = [
@@ -344,7 +422,7 @@ const handleTimeRangeChange = (val) => {
       ]
       break
   }
-  
+
   fetchStatistics()
 }
 
@@ -356,15 +434,27 @@ const handleDateChange = () => {
 
 // 窗口大小改变时重新渲染图表
 const handleResize = () => {
+  checkMobile()
   expenseChart && expenseChart.resize()
   trendChart && trendChart.resize()
 }
 
 onMounted(() => {
+  checkMobile()
   // 默认本月
   handleTimeRangeChange('month')
   initTrendChart()
   window.addEventListener('resize', handleResize)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize)
+  if (expenseChart) {
+    expenseChart.dispose()
+  }
+  if (trendChart) {
+    trendChart.dispose()
+  }
 })
 </script>
 
@@ -373,22 +463,22 @@ onMounted(() => {
   .filter-card {
     margin-bottom: 20px;
   }
-  
+
   .section {
     margin-bottom: 20px;
   }
-  
+
   .overview-value {
     font-size: 36px;
     font-weight: 600;
     text-align: center;
     padding: 20px 0;
   }
-  
+
   .chart-card {
     .chart-container {
       height: 350px;
-      
+
       .empty-chart {
         height: 100%;
         display: flex;
@@ -398,15 +488,125 @@ onMounted(() => {
       }
     }
   }
-  
+
   .category-cell {
     display: flex;
     align-items: center;
     gap: 8px;
-    
+
     .el-icon {
       font-size: 18px;
       color: #409EFF;
+    }
+  }
+
+  .table-wrapper {
+    overflow-x: auto;
+  }
+
+  /* 移动端排行列表 */
+  .mobile-rank-list {
+    .mobile-rank-item {
+      display: flex;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid #ebeef5;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      .rank-index {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: #f5f7fa;
+        color: #606266;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        font-weight: 600;
+        flex-shrink: 0;
+        margin-right: 10px;
+      }
+
+      .rank-info {
+        flex: 1;
+        min-width: 0;
+        margin-right: 10px;
+
+        .rank-name {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 14px;
+          color: #303133;
+          margin-bottom: 6px;
+
+          .el-icon {
+            font-size: 16px;
+            color: #409EFF;
+          }
+        }
+
+        .rank-progress {
+          :deep(.el-progress__text) {
+            font-size: 11px;
+          }
+        }
+      }
+
+      .rank-amount {
+        text-align: right;
+        flex-shrink: 0;
+
+        .amount-text {
+          font-size: 14px;
+          font-weight: 600;
+        }
+
+        .count-text {
+          font-size: 11px;
+          color: #909399;
+        }
+      }
+    }
+  }
+}
+
+/* ========== 移动端H5适配 ========== */
+@media (max-width: 768px) {
+  .statistics-page {
+    .filter-card {
+      margin-bottom: 10px;
+
+      .el-radio-group {
+        display: flex;
+        flex-wrap: wrap;
+
+        .el-radio-button {
+          flex: 1;
+
+          .el-radio-button__inner {
+            padding: 6px 10px;
+            font-size: 12px;
+          }
+        }
+      }
+    }
+
+    .section {
+      margin-bottom: 10px;
+    }
+
+    .overview-value {
+      font-size: 24px;
+      padding: 15px 0;
+    }
+
+    .chart-card .chart-container {
+      height: 260px;
     }
   }
 }

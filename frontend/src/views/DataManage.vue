@@ -10,13 +10,13 @@
           </span>
         </div>
       </template>
-      
-      <el-row :gutter="20">
+
+      <el-row :gutter="isMobile ? 10 : 20">
         <el-col :xs="24" :md="12">
           <div class="export-section">
             <h4>导出数据</h4>
             <p class="desc">将您的数据导出为CSV格式文件，方便备份和分析</p>
-            
+
             <div class="export-items">
               <div class="export-item">
                 <div class="export-info">
@@ -27,7 +27,7 @@
                   <el-icon><Download /></el-icon>导出
                 </el-button>
               </div>
-              
+
               <div class="export-item">
                 <div class="export-info">
                   <el-icon><Wallet /></el-icon>
@@ -37,7 +37,7 @@
                   <el-icon><Download /></el-icon>导出
                 </el-button>
               </div>
-              
+
               <div class="export-item">
                 <div class="export-info">
                   <el-icon><Grid /></el-icon>
@@ -50,12 +50,12 @@
             </div>
           </div>
         </el-col>
-        
+
         <el-col :xs="24" :md="12">
           <div class="import-section">
             <h4>导入数据</h4>
             <p class="desc">从备份文件恢复数据（JSON格式）</p>
-            
+
             <el-upload
               class="upload-area"
               drag
@@ -75,11 +75,11 @@
                 </div>
               </template>
             </el-upload>
-            
+
             <el-button
               v-if="selectedFile"
               type="warning"
-              style="margin-top: 15px; width: 100%"
+              class="restore-btn"
               :loading="restoring"
               @click="handleRestore"
             >
@@ -90,7 +90,7 @@
         </el-col>
       </el-row>
     </el-card>
-    
+
     <!-- 数据备份恢复 -->
     <el-card shadow="hover" class="section">
       <template #header>
@@ -99,52 +99,84 @@
             <el-icon><Collection /></el-icon>
             数据备份
           </span>
-          <el-button type="primary" @click="handleCreateBackup">
+          <el-button type="primary" size="small" @click="handleCreateBackup">
             <el-icon><Plus /></el-icon>创建备份
           </el-button>
         </div>
       </template>
-      
+
       <div v-if="backupLogs.length === 0" class="empty-data">
         <el-empty description="暂无备份记录" />
       </div>
-      
-      <el-table v-else :data="backupLogs" stripe>
-        <el-table-column type="index" width="50" />
-        <el-table-column label="文件名" prop="file_name" min-width="200" />
-        <el-table-column label="数据条数" width="100">
-          <template #default="{ row }">
-            {{ row.data_count }} 条
-          </template>
-        </el-table-column>
-        <el-table-column label="文件大小" width="100">
-          <template #default="{ row }">
-            {{ formatFileSize(row.file_size) }}
-          </template>
-        </el-table-column>
-        <el-table-column label="备份类型" width="100">
-          <template #default="{ row }">
-            <el-tag :type="row.backup_type === 'auto' ? 'success' : 'primary'" size="small">
-              {{ row.backup_type === 'auto' ? '自动' : '手动' }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="备注" prop="remark" min-width="150" />
-        <el-table-column label="备份时间" width="150">
-          <template #default="{ row }">
-            {{ formatDateTime(row.create_time) }}
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="120" fixed="right">
-          <template #default="{ row }">
-            <el-button type="danger" link @click="handleDeleteBackup(row)">
+
+      <!-- 桌面端表格展示 -->
+      <div v-else-if="!isMobile" class="table-wrapper">
+        <el-table :data="backupLogs" stripe>
+          <el-table-column type="index" width="50" />
+          <el-table-column label="文件名" prop="file_name" min-width="200" />
+          <el-table-column label="数据条数" width="100">
+            <template #default="{ row }">
+              {{ row.data_count }} 条
+            </template>
+          </el-table-column>
+          <el-table-column label="文件大小" width="100">
+            <template #default="{ row }">
+              {{ formatFileSize(row.file_size) }}
+            </template>
+          </el-table-column>
+          <el-table-column label="备份类型" width="100">
+            <template #default="{ row }">
+              <el-tag :type="row.backup_type === 'auto' ? 'success' : 'primary'" size="small">
+                {{ row.backup_type === 'auto' ? '自动' : '手动' }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column label="备注" prop="remark" min-width="150" />
+          <el-table-column label="备份时间" width="150">
+            <template #default="{ row }">
+              {{ formatDateTime(row.create_time) }}
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" width="120" fixed="right">
+            <template #default="{ row }">
+              <el-button type="danger" link size="small" @click="handleDeleteBackup(row)">
+                <el-icon><Delete /></el-icon>删除
+              </el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
+
+      <!-- 移动端卡片列表展示 -->
+      <div v-else class="mobile-backup-list">
+        <div
+          v-for="log in backupLogs"
+          :key="log.id"
+          class="mobile-backup-item"
+        >
+          <div class="backup-main">
+            <div class="backup-name">{{ log.file_name }}</div>
+            <div class="backup-meta">
+              <el-tag :type="log.backup_type === 'auto' ? 'success' : 'primary'" size="small">
+                {{ log.backup_type === 'auto' ? '自动' : '手动' }}
+              </el-tag>
+              <span class="meta-item">{{ log.data_count }} 条</span>
+              <span class="meta-item">{{ formatFileSize(log.file_size) }}</span>
+            </div>
+          </div>
+          <div class="backup-detail">
+            <div v-if="log.remark" class="detail-item">备注：{{ log.remark }}</div>
+            <div class="detail-item">{{ formatDateTime(log.create_time) }}</div>
+          </div>
+          <div class="backup-actions">
+            <el-button type="danger" link size="small" @click="handleDeleteBackup(log)">
               <el-icon><Delete /></el-icon>删除
             </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+          </div>
+        </div>
+      </div>
     </el-card>
-    
+
     <!-- 币种设置 -->
     <el-card shadow="hover" class="section">
       <template #header>
@@ -155,27 +187,29 @@
           </span>
         </div>
       </template>
-      
-      <el-row :gutter="20">
+
+      <el-row :gutter="isMobile ? 10 : 20">
         <el-col :xs="24" :md="12">
           <div class="currency-section">
             <h4>支持币种</h4>
-            <el-table :data="currencyList" stripe size="small">
-              <el-table-column label="币种代码" prop="code" width="100" />
-              <el-table-column label="币种名称" prop="name" />
-            </el-table>
+            <div class="table-wrapper">
+              <el-table :data="currencyList" stripe size="small">
+                <el-table-column label="币种代码" prop="code" width="100" />
+                <el-table-column label="币种名称" prop="name" />
+              </el-table>
+            </div>
           </div>
         </el-col>
-        
+
         <el-col :xs="24" :md="12">
           <div class="exchange-section">
             <h4>汇率查询</h4>
-            <el-form inline>
+            <el-form :inline="!isMobile" :label-position="isMobile ? 'top' : 'right'">
               <el-form-item label="金额">
                 <el-input-number v-model="exchangeForm.amount" :min="1" :precision="2" />
               </el-form-item>
               <el-form-item label="从">
-                <el-select v-model="exchangeForm.from" style="width: 100px">
+                <el-select v-model="exchangeForm.from" :style="isMobile ? { width: '100%' } : { width: '100px' }">
                   <el-option
                     v-for="c in currencyList"
                     :key="c.code"
@@ -185,7 +219,7 @@
                 </el-select>
               </el-form-item>
               <el-form-item label="到">
-                <el-select v-model="exchangeForm.to" style="width: 100px">
+                <el-select v-model="exchangeForm.to" :style="isMobile ? { width: '100%' } : { width: '100px' }">
                   <el-option
                     v-for="c in currencyList"
                     :key="c.code"
@@ -195,10 +229,10 @@
                 </el-select>
               </el-form-item>
               <el-form-item>
-                <el-button type="primary" @click="handleConvert">转换</el-button>
+                <el-button type="primary" @click="handleConvert" class="convert-btn">转换</el-button>
               </el-form-item>
             </el-form>
-            
+
             <div v-if="exchangeResult" class="exchange-result">
               <div class="result-amount">
                 {{ exchangeForm.amount }} {{ exchangeForm.from }}
@@ -217,7 +251,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   exportBills,
@@ -235,6 +269,12 @@ import {
   convertCurrency
 } from '@/api/currency'
 import { formatAmount, formatDateTime } from '@/utils/format'
+
+// 移动端响应式检测
+const isMobile = ref(false)
+const checkMobile = () => {
+  isMobile.value = window.innerWidth <= 768
+}
 
 // 备份记录
 const backupLogs = ref([])
@@ -355,7 +395,7 @@ const handleRestore = async () => {
     ElMessage.warning('请选择备份文件')
     return
   }
-  
+
   ElMessageBox.confirm(
     '恢复数据将覆盖现有数据，请确保已备份当前数据。确定要继续吗？',
     '警告',
@@ -369,7 +409,7 @@ const handleRestore = async () => {
     try {
       const formData = new FormData()
       formData.append('file', selectedFile.value)
-      
+
       const res = await restoreData(formData)
       if (res.code === 200) {
         ElMessage.success('数据恢复成功')
@@ -420,8 +460,14 @@ const handleConvert = async () => {
 }
 
 onMounted(() => {
+  checkMobile()
+  window.addEventListener('resize', checkMobile)
   fetchBackupLogs()
   fetchCurrencyList()
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', checkMobile)
 })
 </script>
 
@@ -430,12 +476,12 @@ onMounted(() => {
   .section {
     margin-bottom: 20px;
   }
-  
+
   .card-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    
+
     .card-title {
       display: flex;
       align-items: center;
@@ -444,21 +490,21 @@ onMounted(() => {
       font-weight: 600;
     }
   }
-  
+
   .export-section,
   .import-section {
     h4 {
       margin-bottom: 10px;
       color: #303133;
     }
-    
+
     .desc {
       font-size: 13px;
       color: #909399;
       margin-bottom: 15px;
     }
   }
-  
+
   .export-items {
     .export-item {
       display: flex;
@@ -468,12 +514,12 @@ onMounted(() => {
       background: #f5f7fa;
       border-radius: 8px;
       margin-bottom: 10px;
-      
+
       .export-info {
         display: flex;
         align-items: center;
         gap: 10px;
-        
+
         .el-icon {
           font-size: 20px;
           color: #409EFF;
@@ -481,20 +527,25 @@ onMounted(() => {
       }
     }
   }
-  
+
   .upload-area {
     :deep(.el-upload-dragger) {
       width: 100%;
       height: 150px;
     }
-    
+
     .upload-icon {
       font-size: 48px;
       color: #409EFF;
       margin-bottom: 10px;
     }
   }
-  
+
+  .restore-btn {
+    margin-top: 15px;
+    width: 100%;
+  }
+
   .currency-section,
   .exchange-section {
     h4 {
@@ -502,34 +553,131 @@ onMounted(() => {
       color: #303133;
     }
   }
-  
+
   .exchange-result {
     margin-top: 20px;
     padding: 20px;
     background: #f0f9eb;
     border-radius: 8px;
     text-align: center;
-    
+
     .result-amount {
       font-size: 18px;
       color: #606266;
       margin-bottom: 10px;
-      
+
       .el-icon {
         margin: 0 10px;
         vertical-align: middle;
       }
-      
+
       .converted {
         font-size: 24px;
         font-weight: 600;
         color: #67c23a;
       }
     }
-    
+
     .result-rate {
       font-size: 13px;
       color: #909399;
+    }
+  }
+
+  .table-wrapper {
+    overflow-x: auto;
+  }
+
+  .convert-btn {
+    min-width: 60px;
+  }
+
+  /* 移动端备份列表 */
+  .mobile-backup-list {
+    .mobile-backup-item {
+      padding: 12px 0;
+      border-bottom: 1px solid #ebeef5;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      .backup-main {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+
+        .backup-name {
+          font-size: 14px;
+          color: #303133;
+          font-weight: 500;
+          word-break: break-all;
+          margin-right: 10px;
+        }
+
+        .backup-meta {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          flex-shrink: 0;
+
+          .meta-item {
+            font-size: 12px;
+            color: #909399;
+          }
+        }
+      }
+
+      .backup-detail {
+        margin-bottom: 8px;
+
+        .detail-item {
+          font-size: 12px;
+          color: #909399;
+          margin-bottom: 4px;
+        }
+      }
+
+      .backup-actions {
+        display: flex;
+        justify-content: flex-end;
+      }
+    }
+  }
+}
+
+/* ========== 移动端H5适配 ========== */
+@media (max-width: 768px) {
+  .data-manage-page {
+    .section {
+      margin-bottom: 10px;
+    }
+
+    .upload-area {
+      :deep(.el-upload-dragger) {
+        height: 120px;
+      }
+
+      .upload-icon {
+        font-size: 36px;
+      }
+    }
+
+    .exchange-result {
+      padding: 15px;
+
+      .result-amount {
+        font-size: 14px;
+
+        .converted {
+          font-size: 18px;
+        }
+      }
+    }
+
+    .export-items .export-item {
+      padding: 10px;
     }
   }
 }

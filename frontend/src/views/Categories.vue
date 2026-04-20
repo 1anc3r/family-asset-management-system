@@ -8,12 +8,12 @@
             <el-icon><Bottom /></el-icon>
             支出分类
           </span>
-          <el-button type="primary" @click="handleAdd('expense')">
-            <el-icon><Plus /></el-icon>添加分类
+          <el-button type="primary" size="small" @click="handleAdd('expense')">
+            <el-icon><Plus /></el-icon>添加
           </el-button>
         </div>
       </template>
-      
+
       <div class="category-grid">
         <div
           v-for="category in expenseCategories"
@@ -33,19 +33,19 @@
               :inactive-value="0"
               @change="(val) => handleStatusChange(category, val)"
             />
-            <el-button type="primary" link @click="handleEdit(category)">
+            <el-button type="primary" link size="small" @click="handleEdit(category)">
               <el-icon><Edit /></el-icon>
             </el-button>
-            <el-button type="danger" link @click="handleDelete(category)">
+            <el-button type="danger" link size="small" @click="handleDelete(category)">
               <el-icon><Delete /></el-icon>
             </el-button>
           </div>
         </div>
       </div>
-      
+
       <el-empty v-if="expenseCategories.length === 0" description="暂无支出分类" />
     </el-card>
-    
+
     <!-- 收入分类 -->
     <el-card shadow="hover" class="section">
       <template #header>
@@ -54,12 +54,12 @@
             <el-icon><Top /></el-icon>
             收入分类
           </span>
-          <el-button type="success" @click="handleAdd('income')">
-            <el-icon><Plus /></el-icon>添加分类
+          <el-button type="success" size="small" @click="handleAdd('income')">
+            <el-icon><Plus /></el-icon>添加
           </el-button>
         </div>
       </template>
-      
+
       <div class="category-grid">
         <div
           v-for="category in incomeCategories"
@@ -79,30 +79,32 @@
               :inactive-value="0"
               @change="(val) => handleStatusChange(category, val)"
             />
-            <el-button type="primary" link @click="handleEdit(category)">
+            <el-button type="primary" link size="small" @click="handleEdit(category)">
               <el-icon><Edit /></el-icon>
             </el-button>
-            <el-button type="danger" link @click="handleDelete(category)">
+            <el-button type="danger" link size="small" @click="handleDelete(category)">
               <el-icon><Delete /></el-icon>
             </el-button>
           </div>
         </div>
       </div>
-      
+
       <el-empty v-if="incomeCategories.length === 0" description="暂无收入分类" />
     </el-card>
-    
+
     <!-- 添加/编辑弹窗 -->
     <el-dialog
       v-model="dialogVisible"
       :title="isEdit ? '编辑分类' : '添加分类'"
-      width="500px"
+      :width="isMobile ? '92%' : '500px'"
+      :close-on-click-modal="false"
     >
       <el-form
         ref="formRef"
         :model="form"
         :rules="rules"
-        label-width="100px"
+        :label-width="isMobile ? '80px' : '100px'"
+        :label-position="isMobile ? 'top' : 'right'"
       >
         <el-form-item label="类型">
           <el-radio-group v-model="form.type" :disabled="isEdit">
@@ -110,34 +112,42 @@
             <el-radio-button label="income">收入</el-radio-button>
           </el-radio-group>
         </el-form-item>
-        
+
         <el-form-item label="名称" prop="name">
           <el-input v-model="form.name" placeholder="如：餐饮、工资" />
         </el-form-item>
-        
+
         <el-form-item label="图标">
           <el-input v-model="form.icon" placeholder="图标名称（可选）" />
         </el-form-item>
-        
+
         <el-form-item label="排序">
           <el-input-number v-model="form.sort" :min="0" />
         </el-form-item>
       </el-form>
-      
+
       <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="submitting" @click="handleSubmit">
-          保存
-        </el-button>
+        <div class="dialog-footer">
+          <el-button @click="dialogVisible = false">取消</el-button>
+          <el-button type="primary" :loading="submitting" @click="handleSubmit">
+            保存
+          </el-button>
+        </div>
       </template>
     </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getCategoryList, createCategory, updateCategory, deleteCategory } from '@/api/category'
+
+// 移动端响应式检测
+const isMobile = ref(false)
+const checkMobile = () => {
+  isMobile.value = window.innerWidth <= 768
+}
 
 // 数据
 const loading = ref(false)
@@ -208,7 +218,7 @@ const handleEdit = (category) => {
 const handleSubmit = async () => {
   const valid = await formRef.value.validate().catch(() => false)
   if (!valid) return
-  
+
   submitting.value = true
   try {
     if (isEdit.value) {
@@ -273,7 +283,13 @@ const handleStatusChange = async (category, status) => {
 }
 
 onMounted(() => {
+  checkMobile()
+  window.addEventListener('resize', checkMobile)
   fetchCategories()
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', checkMobile)
 })
 </script>
 
@@ -281,19 +297,19 @@ onMounted(() => {
 .categories-page {
   .section {
     margin-bottom: 20px;
-    
+
     .card-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
   }
-  
+
   .category-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     gap: 15px;
-    
+
     .category-item {
       display: flex;
       flex-direction: column;
@@ -302,15 +318,15 @@ onMounted(() => {
       background: #f5f7fa;
       border-radius: 8px;
       transition: all 0.3s;
-      
+
       &:hover {
         background: #ecf5ff;
       }
-      
+
       &.disabled {
         opacity: 0.5;
       }
-      
+
       .category-icon {
         width: 50px;
         height: 50px;
@@ -321,27 +337,81 @@ onMounted(() => {
         align-items: center;
         justify-content: center;
         margin-bottom: 10px;
-        
+
         .el-icon {
           font-size: 24px;
         }
-        
+
         &.income {
           background: #f0f9eb;
           color: #67c23a;
         }
       }
-      
+
       .category-name {
         font-size: 14px;
         color: #303133;
         margin-bottom: 10px;
+        text-align: center;
+        word-break: break-all;
       }
-      
+
       .category-actions {
         display: flex;
         align-items: center;
         gap: 5px;
+      }
+    }
+  }
+
+  .dialog-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+}
+
+/* ========== 移动端H5适配 ========== */
+@media (max-width: 768px) {
+  .categories-page {
+    .section {
+      margin-bottom: 10px;
+    }
+
+    .category-grid {
+      /* 移动端减小网格列宽，每行显示更多 */
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: 10px;
+
+      .category-item {
+        padding: 12px 8px;
+
+        .category-icon {
+          width: 40px;
+          height: 40px;
+          margin-bottom: 8px;
+
+          .el-icon {
+            font-size: 20px;
+          }
+        }
+
+        .category-name {
+          font-size: 12px;
+          margin-bottom: 8px;
+        }
+
+        .category-actions {
+          gap: 3px;
+
+          :deep(.el-switch) {
+            transform: scale(0.8);
+          }
+
+          .el-button {
+            padding: 4px;
+          }
+        }
       }
     }
   }

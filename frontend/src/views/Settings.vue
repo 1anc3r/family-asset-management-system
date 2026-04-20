@@ -1,6 +1,6 @@
 <template>
   <div class="settings-page">
-    <el-row :gutter="20">
+    <el-row :gutter="isMobile ? 10 : 20">
       <!-- 个人信息 -->
       <el-col :xs="24" :lg="12">
         <el-card shadow="hover" class="section">
@@ -12,21 +12,22 @@
               </span>
             </div>
           </template>
-          
+
           <el-form
             ref="profileFormRef"
             :model="profileForm"
             :rules="profileRules"
-            label-width="100px"
+            :label-width="isMobile ? '80px' : '100px'"
+            :label-position="isMobile ? 'top' : 'right'"
           >
             <el-form-item label="用户名">
               <el-input v-model="profileForm.username" disabled />
             </el-form-item>
-            
+
             <el-form-item label="昵称" prop="nickname">
               <el-input v-model="profileForm.nickname" placeholder="请输入昵称" />
             </el-form-item>
-            
+
             <el-form-item>
               <el-button type="primary" :loading="profileLoading" @click="handleUpdateProfile">
                 保存修改
@@ -35,7 +36,7 @@
           </el-form>
         </el-card>
       </el-col>
-      
+
       <!-- 修改密码 -->
       <el-col :xs="24" :lg="12">
         <el-card shadow="hover" class="section">
@@ -47,12 +48,13 @@
               </span>
             </div>
           </template>
-          
+
           <el-form
             ref="passwordFormRef"
             :model="passwordForm"
             :rules="passwordRules"
-            label-width="100px"
+            :label-width="isMobile ? '80px' : '100px'"
+            :label-position="isMobile ? 'top' : 'right'"
           >
             <el-form-item label="原密码" prop="oldPassword">
               <el-input
@@ -62,7 +64,7 @@
                 show-password
               />
             </el-form-item>
-            
+
             <el-form-item label="新密码" prop="newPassword">
               <el-input
                 v-model="passwordForm.newPassword"
@@ -71,7 +73,7 @@
                 show-password
               />
             </el-form-item>
-            
+
             <el-form-item label="确认密码" prop="confirmPassword">
               <el-input
                 v-model="passwordForm.confirmPassword"
@@ -80,7 +82,7 @@
                 show-password
               />
             </el-form-item>
-            
+
             <el-form-item>
               <el-button type="primary" :loading="passwordLoading" @click="handleChangePassword">
                 修改密码
@@ -94,12 +96,18 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/store/user'
 import { getProfile, updateProfile, changePassword } from '@/api/user'
 
 const userStore = useUserStore()
+
+// 移动端响应式检测
+const isMobile = ref(false)
+const checkMobile = () => {
+  isMobile.value = window.innerWidth <= 768
+}
 
 // 个人信息表单
 const profileFormRef = ref(null)
@@ -163,7 +171,7 @@ const fetchUserInfo = async () => {
 const handleUpdateProfile = async () => {
   const valid = await profileFormRef.value.validate().catch(() => false)
   if (!valid) return
-  
+
   profileLoading.value = true
   try {
     const res = await updateProfile({ nickname: profileForm.nickname })
@@ -182,7 +190,7 @@ const handleUpdateProfile = async () => {
 const handleChangePassword = async () => {
   const valid = await passwordFormRef.value.validate().catch(() => false)
   if (!valid) return
-  
+
   passwordLoading.value = true
   try {
     const res = await changePassword({
@@ -209,7 +217,13 @@ const handleChangePassword = async () => {
 }
 
 onMounted(() => {
+  checkMobile()
+  window.addEventListener('resize', checkMobile)
   fetchUserInfo()
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', checkMobile)
 })
 </script>
 
@@ -218,11 +232,11 @@ onMounted(() => {
   .section {
     margin-bottom: 20px;
   }
-  
+
   .card-header {
     display: flex;
     align-items: center;
-    
+
     .card-title {
       display: flex;
       align-items: center;
@@ -230,6 +244,22 @@ onMounted(() => {
       font-size: 16px;
       font-weight: 600;
       color: #303133;
+    }
+  }
+}
+
+/* ========== 移动端H5适配 ========== */
+@media (max-width: 768px) {
+  .settings-page {
+    .section {
+      margin-bottom: 10px;
+    }
+
+    /* 移动端表单按钮全宽 */
+    :deep(.el-form-item__content) {
+      .el-button {
+        width: 100%;
+      }
     }
   }
 }

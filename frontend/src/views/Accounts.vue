@@ -1,19 +1,20 @@
 <template>
   <div class="accounts-page">
     <!-- 资产概览 -->
-    <!-- 统计卡片 -->
-    <el-row :gutter="20" class="stat-cards">
+    <el-row :gutter="isMobile ? 10 : 20" class="stat-cards">
       <el-col :xs="24" :sm="12" :lg="8">
         <el-card class="stat-card" shadow="hover">
-          <div class="stat-icon" style="background: #409EFF;">
-            <el-icon>
-              <Wallet />
-            </el-icon>
-          </div>
-          <div class="stat-info">
-            <div class="stat-label">净资产</div>
-            <div class="stat-value" :class="netWorth >= 0 ? 'amount-income' : 'amount-expense'">
-              ¥{{ formatAmount(netWorth) }}
+          <div class="stat-content">
+            <div class="stat-icon" style="background: #409EFF;">
+              <el-icon>
+                <Wallet />
+              </el-icon>
+            </div>
+            <div class="stat-info">
+              <div class="stat-label">净资产</div>
+              <div class="stat-value" :class="netWorth >= 0 ? 'amount-income' : 'amount-expense'">
+                ¥{{ formatAmount(netWorth) }}
+              </div>
             </div>
           </div>
         </el-card>
@@ -21,28 +22,32 @@
 
       <el-col :xs="24" :sm="12" :lg="8">
         <el-card class="stat-card" shadow="hover">
-          <div class="stat-icon" style="background: #67c23a;">
-            <el-icon>
-              <Money />
-            </el-icon>
-          </div>
-          <div class="stat-info">
-            <div class="stat-label">总资产</div>
-            <div class="stat-value amount-income">¥{{ formatAmount(totalAsset) }}</div>
+          <div class="stat-content">
+            <div class="stat-icon" style="background: #67c23a;">
+              <el-icon>
+                <Money />
+              </el-icon>
+            </div>
+            <div class="stat-info">
+              <div class="stat-label">总资产</div>
+              <div class="stat-value amount-income">¥{{ formatAmount(totalAsset) }}</div>
+            </div>
           </div>
         </el-card>
       </el-col>
 
       <el-col :xs="24" :sm="12" :lg="8">
         <el-card class="stat-card" shadow="hover">
-          <div class="stat-icon" style="background: #f56c6c;">
-            <el-icon>
-              <CreditCard />
-            </el-icon>
-          </div>
-          <div class="stat-info">
-            <div class="stat-label">总负债</div>
-            <div class="stat-value amount-expense">¥{{ formatAmount(totalLiability) }}</div>
+          <div class="stat-content">
+            <div class="stat-icon" style="background: #f56c6c;">
+              <el-icon>
+                <DocumentChecked />
+              </el-icon>
+            </div>
+            <div class="stat-info">
+              <div class="stat-label">总负债</div>
+              <div class="stat-value amount-expense">¥{{ formatAmount(totalLiability) }}</div>
+            </div>
           </div>
         </el-card>
       </el-col>
@@ -58,16 +63,16 @@
             </el-icon>
             资产账户
           </span>
-          <el-button type="primary" @click="handleAdd('asset')">
+          <el-button type="primary" size="small" @click="handleAdd('asset')">
             <el-icon>
               <Plus />
-            </el-icon>添加资产
+            </el-icon>添加
           </el-button>
         </div>
       </template>
 
-      <el-row :gutter="15">
-        <el-col v-for="account in assetAccounts" :key="account.id" :xs="24" :sm="12" :md="8" :lg="6">
+      <el-row :gutter="isMobile ? 10 : 15">
+        <el-col v-for="account in assetAccounts" :key="account.id" :xs="12" :sm="12" :md="8" :lg="6">
           <div class="account-card asset">
             <div class="account-header">
               <span class="account-name">{{ account.name }}</span>
@@ -79,12 +84,12 @@
             <div class="account-actions">
               <el-switch v-model="account.status" :active-value="1" :inactive-value="0"
                 @change="(val) => handleStatusChange(account, val)" />
-              <el-button type="primary" link @click="handleEdit(account)">
+              <el-button type="primary" link size="small" @click="handleEdit(account)">
                 <el-icon>
                   <Edit />
                 </el-icon>编辑
               </el-button>
-              <el-button type="danger" link @click="handleDelete(account)">
+              <el-button type="danger" link size="small" @click="handleDelete(account)">
                 <el-icon>
                   <Delete />
                 </el-icon>删除
@@ -107,16 +112,16 @@
             </el-icon>
             负债账户
           </span>
-          <el-button type="danger" @click="handleAdd('liability')">
+          <el-button type="danger" size="small" @click="handleAdd('liability')">
             <el-icon>
               <Plus />
-            </el-icon>添加负债
+            </el-icon>添加
           </el-button>
         </div>
       </template>
 
-      <el-row :gutter="15">
-        <el-col v-for="account in liabilityAccounts" :key="account.id" :xs="24" :sm="12" :md="8" :lg="6">
+      <el-row :gutter="isMobile ? 10 : 15">
+        <el-col v-for="account in liabilityAccounts" :key="account.id" :xs="12" :sm="12" :md="8" :lg="6">
           <div class="account-card liability">
             <div class="account-header">
               <span class="account-name">{{ account.name }}</span>
@@ -128,12 +133,12 @@
             <div class="account-actions">
               <el-switch v-model="account.status" :active-value="1" :inactive-value="0"
                 @change="(val) => handleStatusChange(account, val)" />
-              <el-button type="primary" link @click="handleEdit(account)">
+              <el-button type="primary" link size="small" @click="handleEdit(account)">
                 <el-icon>
                   <Edit />
                 </el-icon>编辑
               </el-button>
-              <el-button type="danger" link @click="handleDelete(account)">
+              <el-button type="danger" link size="small" @click="handleDelete(account)">
                 <el-icon>
                   <Delete />
                 </el-icon>删除
@@ -158,8 +163,8 @@
           </span>
         </div>
       </template>
-      <el-row :gutter="15">
-        <el-col v-for="item in currencyStats" :key="item.currency" :xs="24" :sm="12" :md="8">
+      <el-row :gutter="isMobile ? 10 : 15">
+        <el-col v-for="item in currencyStats" :key="item.currency" :xs="12" :sm="12" :md="8">
           <div class="currency-item">
             <div class="currency-code">{{ item.currency }}</div>
             <div class="currency-amount amount-income">{{ formatAmount(item.assetAmount) }}</div>
@@ -170,8 +175,10 @@
     </el-card>
 
     <!-- 添加/编辑弹窗 -->
-    <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑账户' : '添加账户'" width="500px">
-      <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
+    <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑账户' : '添加账户'" :width="isMobile ? '92%' : '500px'"
+      :close-on-click-modal="false">
+      <el-form ref="formRef" :model="form" :rules="rules" :label-width="isMobile ? '80px' : '100px'"
+        :label-position="isMobile ? 'top' : 'right'">
         <el-form-item label="类型">
           <el-radio-group v-model="form.type" :disabled="isEdit">
             <el-radio-button label="asset">资产</el-radio-button>
@@ -184,32 +191,30 @@
         </el-form-item>
 
         <el-form-item label="币种">
-          <el-select v-model="form.currency" placeholder="选择币种" style="width: 100%">
+          <el-select v-model="form.currency" placeholder="选择币种" class="full-width">
             <el-option v-for="c in currencyList" :key="c.code" :label="`${c.code} - ${c.name}`" :value="c.code" />
           </el-select>
         </el-form-item>
 
         <el-form-item label="余额" prop="balance">
-          <el-input-number v-model="form.balance" :precision="2" :step="100" style="width: 200px" />
+          <el-input-number v-model="form.balance" :precision="2" :step="100" style="width: 100%" />
         </el-form-item>
-
-        <!-- <el-form-item label="图标">
-          <el-input v-model="form.icon" placeholder="图标名称（可选）" />
-        </el-form-item> -->
       </el-form>
 
       <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="submitting" @click="handleSubmit">
-          保存
-        </el-button>
+        <div class="dialog-footer">
+          <el-button @click="dialogVisible = false">取消</el-button>
+          <el-button type="primary" :loading="submitting" @click="handleSubmit">
+            保存
+          </el-button>
+        </div>
       </template>
     </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   getAccountList,
@@ -220,6 +225,12 @@ import {
 } from '@/api/account'
 import { getCurrencyList } from '@/api/currency'
 import { formatAmount } from '@/utils/format'
+
+// 移动端响应式检测
+const isMobile = ref(false)
+const checkMobile = () => {
+  isMobile.value = window.innerWidth <= 768
+}
 
 // 数据
 const loading = ref(false)
@@ -291,6 +302,7 @@ const fetchStats = async () => {
     if (res.code === 200) {
       totalAsset.value = res.data.totalAsset
       totalLiability.value = res.data.totalLiability
+      currencyStats.value = res.data.currencyStats || []
     }
   } catch (error) {
     console.error('获取统计失败', error)
@@ -406,51 +418,51 @@ const handleStatusChange = async (account, status) => {
 }
 
 onMounted(() => {
+  checkMobile()
+  window.addEventListener('resize', checkMobile)
   fetchAccounts()
   fetchStats()
   fetchCurrencyList()
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', checkMobile)
 })
 </script>
 
 <style scoped lang="scss">
 .accounts-page {
-
   .stat-cards {
     margin-bottom: 20px;
-  }
 
-  .stat-card {
-    display: flex;
-    align-items: center;
-    padding: 10px;
+    .stat-card {
+      .stat-content {
+        display: flex;
+        align-items: center;
 
-    .stat-icon {
-      width: 60px;
-      height: 60px;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-right: 15px;
+        .stat-icon {
+          width: 60px;
+          height: 60px;
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 28px;
+          color: #fff;
+          margin-right: 15px;
+        }
 
-      .el-icon {
-        font-size: 32px;
-        color: #fff;
-      }
-    }
+        .stat-info {
+          .stat-value {
+            font-size: 24px;
+            font-weight: 600;
+          }
 
-    .stat-info {
-      flex: 1;
-
-      .stat-label {
-        font-size: 14px;
-        color: #909399;
-        margin-bottom: 5px;
-      }
-
-      .stat-value {
-        font-size: 24px;
-        font-weight: 600;
+          .stat-label {
+            font-size: 14px;
+            margin-top: 5px;
+          }
+        }
       }
     }
   }
@@ -515,6 +527,9 @@ onMounted(() => {
         font-size: 16px;
         font-weight: 500;
         color: #303133;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
     }
 
@@ -522,12 +537,108 @@ onMounted(() => {
       font-size: 24px;
       font-weight: 600;
       margin-bottom: 10px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     .account-actions {
       display: flex;
       align-items: center;
       gap: 10px;
+      flex-wrap: wrap;
+    }
+  }
+
+  .full-width {
+    width: 100%;
+  }
+
+  .dialog-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+}
+
+/* ========== 移动端H5适配 ========== */
+@media (max-width: 768px) {
+  .accounts-page {
+    .stat-cards {
+      margin-bottom: 10px;
+    }
+
+    .stat-card {
+      padding: 8px;
+      margin-bottom: 10px;
+
+      .stat-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 10px;
+        margin-right: 10px;
+
+        .el-icon {
+          font-size: 24px;
+        }
+      }
+
+      .stat-info {
+        .stat-label {
+          font-size: 12px;
+        }
+
+        .stat-value {
+          font-size: 18px;
+        }
+      }
+    }
+
+    .section {
+      margin-bottom: 10px;
+    }
+
+    .account-card {
+      padding: 10px;
+      margin-bottom: 10px;
+
+      .account-header {
+        margin-bottom: 6px;
+
+        .account-name {
+          font-size: 14px;
+        }
+      }
+
+      .account-balance {
+        font-size: 18px;
+        margin-bottom: 6px;
+      }
+
+      .account-actions {
+        gap: 6px;
+
+        :deep(.el-switch) {
+          transform: scale(0.85);
+        }
+      }
+    }
+
+    .currency-item {
+      padding: 10px;
+      margin-bottom: 10px;
+
+      .currency-code {
+        font-size: 12px;
+      }
+
+      .currency-amount {
+        font-size: 18px;
+      }
+
+      .currency-label {
+        font-size: 11px;
+      }
     }
   }
 }

@@ -5,39 +5,43 @@
       <template #header>
         <div class="card-header">
           <span class="card-title">
-            <el-icon><Bottom /></el-icon>
+            <el-icon>
+              <Bottom />
+            </el-icon>
             支出分类
           </span>
           <el-button type="primary" size="small" @click="handleAdd('expense')">
-            <el-icon><Plus /></el-icon>添加
+            <el-icon>
+              <Plus />
+            </el-icon>添加
           </el-button>
         </div>
       </template>
 
       <div class="category-grid">
-        <div
-          v-for="category in expenseCategories"
-          :key="category.id"
-          class="category-item"
-          :class="{ disabled: category.status === 0 }"
-        >
+        <div v-for="category in expenseCategories" :key="category.id" class="category-item"
+          :class="{ disabled: category.status === 0 }">
           <div class="category-icon">
-            <el-icon v-if="category.icon"><component :is="category.icon" /></el-icon>
-            <el-icon v-else><Goods /></el-icon>
+            <el-icon v-if="category.icon">
+              <component :is="category.icon" />
+            </el-icon>
+            <el-icon v-else>
+              <Goods />
+            </el-icon>
           </div>
           <div class="category-name">{{ category.name }}</div>
           <div class="category-actions">
-            <el-switch
-              v-model="category.status"
-              :active-value="1"
-              :inactive-value="0"
-              @change="(val) => handleStatusChange(category, val)"
-            />
-            <el-button type="primary" link size="small" @click="handleEdit(category)">
-              <el-icon><Edit /></el-icon>
+            <el-switch v-model="category.status" :active-value="1" :inactive-value="0"
+              @change="(val) => handleStatusChange(category, val)" />
+            <el-button type="primary" link @click="handleEdit(category)">
+              <el-icon>
+                <Edit />
+              </el-icon>
             </el-button>
-            <el-button type="danger" link size="small" @click="handleDelete(category)">
-              <el-icon><Delete /></el-icon>
+            <el-button type="danger" link @click="handleDelete(category)">
+              <el-icon>
+                <Delete />
+              </el-icon>
             </el-button>
           </div>
         </div>
@@ -51,39 +55,43 @@
       <template #header>
         <div class="card-header">
           <span class="card-title">
-            <el-icon><Top /></el-icon>
+            <el-icon>
+              <Top />
+            </el-icon>
             收入分类
           </span>
           <el-button type="success" size="small" @click="handleAdd('income')">
-            <el-icon><Plus /></el-icon>添加
+            <el-icon>
+              <Plus />
+            </el-icon>添加
           </el-button>
         </div>
       </template>
 
       <div class="category-grid">
-        <div
-          v-for="category in incomeCategories"
-          :key="category.id"
-          class="category-item"
-          :class="{ disabled: category.status === 0 }"
-        >
+        <div v-for="category in incomeCategories" :key="category.id" class="category-item"
+          :class="{ disabled: category.status === 0 }">
           <div class="category-icon income">
-            <el-icon v-if="category.icon"><component :is="category.icon" /></el-icon>
-            <el-icon v-else><Money /></el-icon>
+            <el-icon v-if="category.icon">
+              <component :is="category.icon" />
+            </el-icon>
+            <el-icon v-else>
+              <Money />
+            </el-icon>
           </div>
           <div class="category-name">{{ category.name }}</div>
           <div class="category-actions">
-            <el-switch
-              v-model="category.status"
-              :active-value="1"
-              :inactive-value="0"
-              @change="(val) => handleStatusChange(category, val)"
-            />
+            <el-switch v-model="category.status" :active-value="1" :inactive-value="0"
+              @change="(val) => handleStatusChange(category, val)" />
             <el-button type="primary" link size="small" @click="handleEdit(category)">
-              <el-icon><Edit /></el-icon>
+              <el-icon>
+                <Edit />
+              </el-icon>
             </el-button>
             <el-button type="danger" link size="small" @click="handleDelete(category)">
-              <el-icon><Delete /></el-icon>
+              <el-icon>
+                <Delete />
+              </el-icon>
             </el-button>
           </div>
         </div>
@@ -93,19 +101,10 @@
     </el-card>
 
     <!-- 添加/编辑弹窗 -->
-    <el-dialog
-      v-model="dialogVisible"
-      :title="isEdit ? '编辑分类' : '添加分类'"
-      :width="isMobile ? '92%' : '500px'"
-      :close-on-click-modal="false"
-    >
-      <el-form
-        ref="formRef"
-        :model="form"
-        :rules="rules"
-        :label-width="isMobile ? '80px' : '100px'"
-        :label-position="isMobile ? 'top' : 'right'"
-      >
+    <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑分类' : '添加分类'" :width="isMobile ? '92%' : '500px'"
+      :close-on-click-modal="false">
+      <el-form ref="formRef" :model="form" :rules="rules" :label-width="isMobile ? '80px' : '100px'"
+        :label-position="isMobile ? 'top' : 'right'">
         <el-form-item label="类型">
           <el-radio-group v-model="form.type" :disabled="isEdit">
             <el-radio-button label="expense">支出</el-radio-button>
@@ -357,9 +356,11 @@ onUnmounted(() => {
       }
 
       .category-actions {
+        max-width: 100%;
+        width: 100%;
         display: flex;
         align-items: center;
-        gap: 5px;
+        gap: 3px;
       }
     }
   }
@@ -402,14 +403,28 @@ onUnmounted(() => {
         }
 
         .category-actions {
-          gap: 3px;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          gap: 2px;
+          width: 100%;
+          overflow: hidden; // 防止溢出
 
           :deep(.el-switch) {
-            transform: scale(0.8);
+            transform: scale(0.8); // 更小
+            flex-shrink: 0;
           }
 
-          .el-button {
-            padding: 4px;
+          :deep(.el-button) {
+            padding: 0 !important;
+            width: 18px !important;
+            height: 18px !important;
+            min-width: 18px !important;
+            flex-shrink: 0;
+
+            .el-icon {
+              font-size: 12px;
+            }
           }
         }
       }

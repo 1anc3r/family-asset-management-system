@@ -156,22 +156,39 @@
       <template #header>
         <div class="card-header">
           <span class="card-title">
-            <el-icon>
-              <Money />
-            </el-icon>
+            <el-icon><Money /></el-icon>
             币种分布
           </span>
         </div>
       </template>
-      <el-row :gutter="isMobile ? 10 : 15">
-        <el-col v-for="item in currencyStats" :key="item.currency" :xs="12" :sm="12" :md="8">
+      <el-row :gutter="10">
+        <el-col
+          v-for="item in currencyStats"
+          :key="item.currency"
+          :xs="12"
+          :sm="8"
+          :md="6"
+        >
           <div class="currency-item">
             <div class="currency-code">{{ item.currency }}</div>
-            <div class="currency-amount amount-income">{{ formatAmount(item.assetAmount) }}</div>
-            <div class="currency-label">资产</div>
+            <div class="currency-row">
+              <span class="currency-label">资产</span>
+              <span class="currency-value amount-income">{{ formatAmount(item.assetAmount) }}</span>
+            </div>
+            <div class="currency-row">
+              <span class="currency-label">负债</span>
+              <span class="currency-value amount-expense">{{ formatAmount(item.liabilityAmount) }}</span>
+            </div>
+            <div class="currency-row">
+              <span class="currency-label">净额</span>
+              <span class="currency-value" :class="item.netAmount >= 0 ? 'amount-income' : 'amount-expense'">
+                {{ formatAmount(item.netAmount) }}
+              </span>
+            </div>
           </div>
         </el-col>
       </el-row>
+      <el-empty v-if="currencyStats.length === 0" description="暂无币种数据" />
     </el-card>
 
     <!-- 添加/编辑弹窗 -->
@@ -219,6 +236,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   getAccountList,
   getAccountStats,
+  getCurrencyStats,
   createAccount,
   updateAccount,
   deleteAccount
@@ -321,6 +339,18 @@ const fetchCurrencyList = async () => {
   }
 }
 
+// 获取币种分布 - 修复：新增调用
+const fetchCurrencyStats = async () => {
+  try {
+    const res = await getCurrencyStats()
+    if (res.code === 200) {
+      currencyStats.value = res.data.list
+    }
+  } catch (error) {
+    console.error('获取币种统计失败', error)
+  }
+}
+
 // 添加账户
 const handleAdd = (type) => {
   isEdit.value = false
@@ -377,6 +407,7 @@ const handleSubmit = async () => {
     dialogVisible.value = false
     fetchAccounts()
     fetchStats()
+    fetchCurrencyStats()
   } catch (error) {
     ElMessage.error(error.response?.data?.msg || '操作失败')
   } finally {
@@ -397,6 +428,7 @@ const handleDelete = (account) => {
         ElMessage.success('删除成功')
         fetchAccounts()
         fetchStats()
+        fetchCurrencyStats()
       }
     } catch (error) {
       ElMessage.error(error.response?.data?.msg || '删除失败')
@@ -423,6 +455,7 @@ onMounted(() => {
   fetchAccounts()
   fetchStats()
   fetchCurrencyList()
+  fetchCurrencyStats()
 })
 
 onUnmounted(() => {
@@ -479,26 +512,32 @@ onUnmounted(() => {
 
   .currency-item {
     background: #f5f7fa;
-    border-radius: 8px;
+    border-radius: 10px;
     padding: 15px;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
     text-align: center;
 
     .currency-code {
-      font-size: 14px;
-      color: #909399;
-      margin-bottom: 5px;
-    }
-
-    .currency-amount {
-      font-size: 24px;
+      font-size: 18px;
       font-weight: 600;
-      margin-bottom: 5px;
+      color: #303133;
+      margin-bottom: 10px;
     }
 
-    .currency-label {
-      font-size: 12px;
-      color: #909399;
+    .currency-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+      font-size: 13px;
+
+      .currency-label {
+        color: #909399;
+      }
+
+      .currency-value {
+        font-weight: 500;
+      }
     }
   }
 

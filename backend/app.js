@@ -6,6 +6,7 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 const { testConnection } = require('./config/database');
+const { startAutoUpdate } = require('./utils/autoUpdateRates');
 
 // 导入路由
 const userRoutes = require('./routes/user');
@@ -72,6 +73,9 @@ app.listen(PORT, async () => {
   
   // 测试数据库连接
   await testConnection();
+  
+  // 启动自动汇率更新服务
+  startAutoUpdate();
 });
 
 module.exports = app;

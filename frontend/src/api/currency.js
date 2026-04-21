@@ -19,3 +19,8 @@ export const convertCurrency = (params) => {
 export const getExchangeRate = (params) => {
   return request.get('/currency/rate', { params })
 }
+
+// 手动刷新汇率
+export const refreshExchangeRates = () => {
+  return request.post('/currency/refresh')
+}

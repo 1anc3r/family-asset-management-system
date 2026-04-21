@@ -10,6 +10,11 @@ export const getAccountStats = () => {
   return request.get('/account/stats')
 }
 
+// 获取币种资产统计
+export const getCurrencyStats = () => {
+  return request.get('/account/currency-stats')
+}
+
 // 创建账户
 export const createAccount = (data) => {
   return request.post('/account/add', data)

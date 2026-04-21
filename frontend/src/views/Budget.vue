@@ -2,7 +2,7 @@
   <div class="budget-page">
     <!-- 预算概览 -->
     <el-row :gutter="isMobile ? 10 : 20" class="section">
-      <el-col :xs="24" :sm="12" :md="8">
+      <el-col :xs="24" :sm="8" :md="8">
         <el-card shadow="hover">
           <div class="budget-summary">
             <div class="summary-label">本月预算</div>
@@ -10,7 +10,7 @@
           </div>
         </el-card>
       </el-col>
-      <el-col :xs="24" :sm="12" :md="8">
+      <el-col :xs="24" :sm="8" :md="8">
         <el-card shadow="hover">
           <div class="budget-summary">
             <div class="summary-label">已支出</div>
@@ -18,7 +18,7 @@
           </div>
         </el-card>
       </el-col>
-      <el-col :xs="24" :sm="12" :md="8">
+      <el-col :xs="24" :sm="8" :md="8">
         <el-card shadow="hover">
           <div class="budget-summary">
             <div class="summary-label">剩余预算</div>
@@ -29,7 +29,7 @@
         </el-card>
       </el-col>
     </el-row>
-
+    
     <!-- 总体预算进度 -->
     <el-card shadow="hover" class="section">
       <template #header>
@@ -40,7 +40,7 @@
       </template>
       <div class="overall-progress">
         <el-progress
-          :percentage="summary.used_percent"
+          :percentage="Math.min(summary.used_percent, 100)"
           :status="getProgressStatus(summary.used_percent)"
           :stroke-width="isMobile ? 14 : 20"
           :format="(p) => `${p}%`"
@@ -51,23 +51,18 @@
         </div>
       </div>
     </el-card>
-
+    
     <!-- 分类预算 -->
     <el-card shadow="hover" class="section">
       <template #header>
         <div class="card-header">
           <span class="card-title">
-            <el-icon><Wallet /></el-icon>
+            <el-icon><Aim /></el-icon>
             分类预算
           </span>
           <div class="header-actions">
-            <el-select v-model="selectedMonth" size="small" @change="handleMonthChange">
-              <el-option
-                v-for="m in monthOptions"
-                :key="m.value"
-                :label="m.label"
-                :value="m.value"
-              />
+            <el-select v-model="selectedMonth" size="small" @change="handleMonthChange" style="width: 130px">
+              <el-option v-for="m in monthOptions" :key="m.value" :label="m.label" :value="m.value" />
             </el-select>
             <el-button type="primary" size="small" @click="handleAdd">
               <el-icon><Plus /></el-icon>添加
@@ -78,13 +73,13 @@
           </div>
         </div>
       </template>
-
+      
       <div v-if="budgetList.length === 0" class="empty-data">
         <el-empty description="暂无预算设置">
           <el-button type="primary" @click="handleAdd">添加预算</el-button>
         </el-empty>
       </div>
-
+      
       <div v-else class="budget-list">
         <div
           v-for="budget in budgetList"
@@ -103,7 +98,7 @@
               <span class="total">¥{{ formatAmount(budget.amount) }}</span>
             </div>
           </div>
-
+          
           <div class="budget-progress">
             <el-progress
               :percentage="Math.min(budget.used_percent, 100)"
@@ -115,7 +110,7 @@
               <span v-else>剩余 ¥{{ formatAmount(budget.remaining) }}</span>
             </div>
           </div>
-
+          
           <div class="budget-actions">
             <el-button type="primary" link size="small" @click="handleEdit(budget)">
               <el-icon><Edit /></el-icon>
@@ -127,79 +122,47 @@
         </div>
       </div>
     </el-card>
-
+    
     <!-- 添加/编辑弹窗 -->
-    <el-dialog
-      v-model="dialogVisible"
-      :title="isEdit ? '编辑预算' : '添加预算'"
-      :width="isMobile ? '92%' : '500px'"
-      :close-on-click-modal="false"
-    >
-      <el-form
-        ref="formRef"
-        :model="form"
-        :rules="rules"
-        :label-width="isMobile ? '80px' : '100px'"
-        :label-position="isMobile ? 'top' : 'right'"
-      >
+    <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑预算' : '添加预算'" width="480px">
+      <el-form ref="formRef" :model="form" :rules="rules" label-position="top">
         <el-form-item label="预算类型">
-          <el-radio-group v-model="form.category_type" :disabled="isEdit">
+          <el-radio-group v-model="form.category_type" :disabled="isEdit" @change="onCategoryTypeChange">
             <el-radio-button label="total">总预算</el-radio-button>
             <el-radio-button label="category">分类预算</el-radio-button>
           </el-radio-group>
         </el-form-item>
-
+        
         <el-form-item v-if="form.category_type === 'category'" label="分类" prop="category_id">
-          <el-select v-model="form.category_id" placeholder="选择支出分类" class="full-width">
-            <el-option
-              v-for="cat in expenseCategories"
-              :key="cat.id"
-              :label="cat.name"
-              :value="cat.id"
-            />
+          <el-select v-model="form.category_id" placeholder="选择支出分类" style="width: 100%">
+            <el-option v-for="cat in expenseCategories" :key="cat.id" :label="cat.name" :value="cat.id" />
           </el-select>
         </el-form-item>
-
+        
         <el-form-item label="预算金额" prop="amount">
-          <el-input-number
-            v-model="form.amount"
-            :min="1"
-            :precision="2"
-            :step="100"
-            style="width: 100%"
-          />
+          <el-input-number v-model="form.amount" :min="1" :precision="2" :step="100" style="width: 200px" />
         </el-form-item>
-
+        
         <el-form-item label="预算月份" prop="year_month">
-          <el-date-picker
-            v-model="form.year_month"
-            type="month"
-            placeholder="选择月份"
-            value-format="YYYY-MM"
-            style="width: 100%"
-          />
+          <el-date-picker v-model="form.year_month" type="month" placeholder="选择月份" value-format="YYYY-MM" style="width: 200px" />
         </el-form-item>
-
+        
         <el-form-item label="预警阈值">
-          <el-slider v-model="form.alert_threshold" :max="100" show-stops :step="10" />
-          <div class="threshold-text">当支出达到预算的 {{ form.alert_threshold }}% 时预警</div>
+          <el-slider v-model="form.alert_threshold" :max="100" :step="10" show-stops />
+          <div class="threshold-text">当支出达到 {{ form.alert_threshold }}% 时预警</div>
         </el-form-item>
       </el-form>
-
+      
       <template #footer>
-        <div class="dialog-footer">
-          <el-button @click="dialogVisible = false">取消</el-button>
-          <el-button type="primary" :loading="submitting" @click="handleSubmit">
-            保存
-          </el-button>
-        </div>
+        <el-button @click="dialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="submitting" @click="handleSubmit">保存</el-button>
       </template>
     </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   getBudgetList,
@@ -247,7 +210,7 @@ const monthOptions = computed(() => {
 const currentMonth = computed(() => moment(selectedMonth.value).format('YYYY年MM月'))
 
 // 支出分类
-const expenseCategories = computed(() =>
+const expenseCategories = computed(() => 
   categories.value.filter(c => c.type === 'expense' && c.status === 1)
 )
 
@@ -266,16 +229,8 @@ const form = reactive({
   alert_threshold: 80
 })
 
+// 表单验证规则 - 修复：简化验证，避免复杂的自定义验证器导致的问题
 const rules = {
-  category_id: [
-    { required: true, message: '请选择分类', trigger: 'change', validator: (rule, value, callback) => {
-      if (form.category_type === 'category' && !value) {
-        callback(new Error('请选择分类'))
-      } else {
-        callback()
-      }
-    }}
-  ],
   amount: [
     { required: true, message: '请输入预算金额', trigger: 'blur' }
   ],
@@ -324,6 +279,11 @@ const handleMonthChange = () => {
   fetchBudgetExecution()
 }
 
+// 类型切换时重置分类
+const onCategoryTypeChange = () => {
+  form.category_id = null
+}
+
 // 添加预算
 const handleAdd = () => {
   isEdit.value = false
@@ -348,11 +308,23 @@ const handleEdit = (budget) => {
   dialogVisible.value = true
 }
 
-// 提交表单
+// 提交表单 - 修复：简化提交逻辑，确保数据格式正确
 const handleSubmit = async () => {
-  const valid = await formRef.value.validate().catch(() => false)
-  if (!valid) return
-
+  // 先进行基础验证
+  if (!form.amount || form.amount <= 0) {
+    ElMessage.warning('请输入有效的预算金额')
+    return
+  }
+  if (!form.year_month) {
+    ElMessage.warning('请选择预算月份')
+    return
+  }
+  // 分类预算必须选择分类
+  if (form.category_type === 'category' && !form.category_id) {
+    ElMessage.warning('请选择支出分类')
+    return
+  }
+  
   submitting.value = true
   try {
     const data = {
@@ -361,7 +333,7 @@ const handleSubmit = async () => {
       year_month: form.year_month,
       alert_threshold: form.alert_threshold
     }
-
+    
     if (isEdit.value) {
       const res = await updateBudget(form.id, data)
       if (res.code === 200) {
@@ -415,14 +387,8 @@ const handleCopyFromLastMonth = async () => {
 }
 
 onMounted(() => {
-  checkMobile()
-  window.addEventListener('resize', checkMobile)
   fetchBudgetExecution()
   fetchCategories()
-})
-
-onUnmounted(() => {
-  window.removeEventListener('resize', checkMobile)
 })
 </script>
 
@@ -434,16 +400,14 @@ onUnmounted(() => {
 
   .budget-summary {
     text-align: center;
-    padding: 10px;
 
     .summary-label {
-      font-size: 14px;
+      font-size: 13px;
       color: #909399;
-      margin-bottom: 10px;
     }
 
     .summary-value {
-      font-size: 28px;
+      font-size: 22px;
       font-weight: 600;
     }
   }
@@ -452,37 +416,36 @@ onUnmounted(() => {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    flex-wrap: wrap;
-    gap: 8px;
 
     .card-title {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       font-size: 16px;
       font-weight: 600;
     }
 
     .card-subtitle {
-      font-size: 14px;
+      font-size: 13px;
       color: #909399;
     }
 
     .header-actions {
       display: flex;
       gap: 8px;
-      align-items: center;
+      flex-wrap: wrap;
     }
   }
 
   .overall-progress {
-    padding: 20px;
+    padding: 10px;
 
     .progress-info {
       display: flex;
       justify-content: space-between;
-      margin-top: 10px;
+      margin-top: 8px;
       color: #606266;
+      font-size: 13px;
     }
   }
 
@@ -490,8 +453,8 @@ onUnmounted(() => {
     .budget-item {
       display: flex;
       align-items: center;
-      padding: 15px;
-      border-bottom: 1px solid #ebeef5;
+      padding: 12px;
+      border-bottom: 1px solid #f0f0f0;
 
       &:last-child {
         border-bottom: none;
@@ -506,16 +469,16 @@ onUnmounted(() => {
       }
 
       .budget-info {
-        width: 200px;
+        width: 160px;
         flex-shrink: 0;
 
         .budget-name {
           display: flex;
           align-items: center;
-          gap: 8px;
+          gap: 6px;
           font-size: 14px;
           color: #303133;
-          margin-bottom: 5px;
+          margin-bottom: 4px;
 
           .el-icon {
             color: #409EFF;
@@ -523,7 +486,7 @@ onUnmounted(() => {
         }
 
         .budget-amount {
-          font-size: 13px;
+          font-size: 12px;
 
           .used {
             color: #f56c6c;
@@ -531,7 +494,7 @@ onUnmounted(() => {
           }
 
           .divider {
-            margin: 0 5px;
+            margin: 0 4px;
             color: #909399;
           }
 
@@ -543,11 +506,11 @@ onUnmounted(() => {
 
       .budget-progress {
         flex: 1;
-        margin: 0 20px;
+        margin: 0 15px;
 
         .progress-text {
-          margin-top: 5px;
-          font-size: 12px;
+          margin-top: 4px;
+          font-size: 11px;
           color: #606266;
 
           .over-text {
@@ -558,7 +521,7 @@ onUnmounted(() => {
 
       .budget-actions {
         display: flex;
-        gap: 5px;
+        gap: 4px;
         flex-shrink: 0;
       }
     }
@@ -567,77 +530,21 @@ onUnmounted(() => {
   .threshold-text {
     font-size: 12px;
     color: #909399;
-    margin-top: 5px;
-  }
-
-  .full-width {
-    width: 100%;
-  }
-
-  .dialog-footer {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
+    margin-top: 4px;
   }
 }
 
-/* ========== 移动端H5适配 ========== */
+/* 移动端适配 */
 @media (max-width: 768px) {
   .budget-page {
-    .section {
-      margin-bottom: 10px;
-    }
-
-    .budget-summary {
-      padding: 6px;
-
-      .summary-label {
-        font-size: 12px;
-        margin-bottom: 6px;
-      }
-
-      .summary-value {
-        font-size: 20px;
-      }
-    }
-
-    .overall-progress {
-      padding: 12px;
-    }
-
-    .card-header {
-      .header-actions {
-        flex-wrap: wrap;
-        justify-content: flex-end;
-        gap: 6px;
-
-        .el-button {
-          padding: 6px 10px;
-          font-size: 12px;
-        }
-
-        .el-select {
-          width: 120px;
-        }
-      }
-    }
-
     .budget-list {
       .budget-item {
         flex-direction: column;
         align-items: flex-start;
-        padding: 12px;
 
         .budget-info {
           width: 100%;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
           margin-bottom: 8px;
-
-          .budget-name {
-            margin-bottom: 0;
-          }
         }
 
         .budget-progress {
@@ -646,8 +553,21 @@ onUnmounted(() => {
         }
 
         .budget-actions {
-          width: 100%;
-          justify-content: flex-end;
+          align-self: flex-end;
+        }
+      }
+    }
+
+    .card-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+
+      .header-actions {
+        width: 100%;
+
+        .el-select {
+          flex: 1;
         }
       }
     }

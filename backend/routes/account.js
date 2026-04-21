@@ -9,6 +9,7 @@ router.use(authMiddleware);
 
 router.get('/list', AccountController.getList);
 router.get('/stats', AccountController.getStats);
+router.get('/currency-stats', AccountController.getCurrencyStats);
 router.post('/add', AccountController.createValidation, validateMiddleware, AccountController.create);
 router.put('/:id', AccountController.update);
 router.delete('/:id', AccountController.delete);

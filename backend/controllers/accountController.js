@@ -106,6 +106,19 @@ class AccountController {
       error(res, '获取资产统计失败');
     }
   }
+
+  /**
+   * 按币种获取资产统计
+   */
+  static async getCurrencyStats(req, res) {
+    try {
+      const stats = await AccountModel.getAssetStatsByCurrency(req.userId);
+      success(res, { list: stats });
+    } catch (err) {
+      console.error('获取币种统计失败：', err);
+      error(res, '获取币种统计失败');
+    }
+  }
 }
 
 module.exports = AccountController;

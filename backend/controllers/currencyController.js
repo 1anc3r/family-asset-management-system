@@ -1,4 +1,5 @@
 const CurrencyModel = require('../models/currency');
+const { updateRates } = require('../utils/autoUpdateRates');
 const { success, error } = require('../utils/response');
 
 class CurrencyController {
@@ -107,6 +108,25 @@ class CurrencyController {
     } catch (err) {
       console.error('更新汇率失败：', err);
       error(res, '更新汇率失败');
+    }
+  }
+
+  /**
+   * 手动触发汇率自动更新
+   */
+  static async refreshRates(req, res) {
+    try {
+      const result = await updateRates();
+      if (result) {
+        // 获取更新后的汇率返回
+        const rates = await CurrencyModel.getAllRates();
+        success(res, { list: rates }, '汇率更新成功');
+      } else {
+        error(res, '汇率更新失败');
+      }
+    } catch (err) {
+      console.error('手动更新汇率失败：', err);
+      error(res, '汇率更新失败：' + err.message);
     }
   }
 }

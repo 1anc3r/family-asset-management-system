@@ -11,5 +11,6 @@ router.get('/rates', CurrencyController.getRates);
 router.get('/convert', CurrencyController.convert);
 router.get('/rate', CurrencyController.getRate);
 router.put('/rate', CurrencyController.updateRate);
+router.post('/refresh', CurrencyController.refreshRates);
 
 module.exports = router;

@@ -69,8 +69,8 @@ class BackupModel {
    */
   async getBackupLogs(userId, limit = 20) {
     const [rows] = await pool.query(
-      'SELECT * FROM backup_logs WHERE user_id = ? ORDER BY create_time DESC LIMIT ?',
-      [userId, limit]
+      `SELECT * FROM backup_logs WHERE user_id = ? ORDER BY create_time DESC LIMIT ${parseInt(limit)}`,
+      [userId]
     );
     return rows;
   }
@@ -195,7 +195,7 @@ class BackupModel {
     for (const budget of budgets) {
       try {
         const [result] = await pool.query(
-          `INSERT INTO budgets (user_id, category_id, amount, period_type, year_month, alert_threshold, status, create_time) 
+          `INSERT INTO budgets (user_id, category_id, amount, period_type, \`year_month\`, alert_threshold, status, create_time) 
            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
            ON DUPLICATE KEY UPDATE 
            amount = VALUES(amount), 

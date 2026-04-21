@@ -12,7 +12,7 @@ class BudgetModel {
       `SELECT b.*, c.name as category_name, c.icon as category_icon
        FROM budgets b
        LEFT JOIN categories c ON b.category_id = c.id
-       WHERE b.user_id = ? AND b.year_month = ?
+       WHERE b.user_id = ? AND b.\`year_month\` = ?
        ORDER BY b.category_id IS NULL DESC, b.category_id ASC`,
       [userId, month]
     );
@@ -39,7 +39,7 @@ class BudgetModel {
   async create(userId, data) {
     const [result] = await pool.query(
       `INSERT INTO budgets 
-       (user_id, category_id, amount, period_type, year_month, alert_threshold, status) 
+       (user_id, category_id, amount, period_type, \`year_month\`, alert_threshold, status) 
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [
         userId,
@@ -150,7 +150,7 @@ class BudgetModel {
    */
   async exists(userId, categoryId, yearMonth) {
     const [rows] = await pool.query(
-      'SELECT id FROM budgets WHERE user_id = ? AND category_id <=> ? AND year_month = ?',
+      'SELECT id FROM budgets WHERE user_id = ? AND category_id <=> ? AND \`year_month\` = ?',
       [userId, categoryId, yearMonth]
     );
     return rows.length > 0;

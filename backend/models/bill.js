@@ -82,8 +82,7 @@ class BillModel {
     const pageSize = parseInt(params.pageSize) || 20;
     const offset = (page - 1) * pageSize;
 
-    sql += ' LIMIT ? OFFSET ?';
-    queryParams.push(pageSize, offset);
+    sql += ` LIMIT ${pageSize} OFFSET ${offset}`;
 
     const [rows] = await pool.query(sql, queryParams);
     return rows;

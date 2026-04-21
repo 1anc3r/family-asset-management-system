@@ -5,7 +5,7 @@ class CurrencyModel {
    * 获取所有支持的币种
    */
   async getAllCurrencies() {
-    const [rows] = await pool.execute(
+    const [rows] = await pool.query(
       `SELECT DISTINCT from_currency as code FROM exchange_rates ORDER BY from_currency`
     );
     
@@ -33,7 +33,7 @@ class CurrencyModel {
       return 1;
     }
     
-    const [rows] = await pool.execute(
+    const [rows] = await pool.query(
       'SELECT rate FROM exchange_rates WHERE from_currency = ? AND to_currency = ?',
       [fromCurrency, toCurrency]
     );
@@ -43,7 +43,7 @@ class CurrencyModel {
     }
     
     // 尝试反向查找并计算
-    const [reverseRows] = await pool.execute(
+    const [reverseRows] = await pool.query(
       'SELECT rate FROM exchange_rates WHERE from_currency = ? AND to_currency = ?',
       [toCurrency, fromCurrency]
     );
@@ -70,7 +70,7 @@ class CurrencyModel {
    * 更新汇率
    */
   async updateRate(fromCurrency, toCurrency, rate) {
-    const [result] = await pool.execute(
+    const [result] = await pool.query(
       `INSERT INTO exchange_rates (from_currency, to_currency, rate) 
        VALUES (?, ?, ?)
        ON DUPLICATE KEY UPDATE rate = ?, update_time = NOW()`,
@@ -83,7 +83,7 @@ class CurrencyModel {
    * 获取所有汇率
    */
   async getAllRates() {
-    const [rows] = await pool.execute(
+    const [rows] = await pool.query(
       'SELECT * FROM exchange_rates ORDER BY from_currency, to_currency'
     );
     return rows;

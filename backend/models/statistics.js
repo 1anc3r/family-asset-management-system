@@ -127,8 +127,8 @@ class StatisticsModel {
    */
   async getRecentBills(userId, limit = 5) {
     const [rows] = await pool.query(
-      `SELECT b.*, 
-        a.name as account_name, 
+      `SELECT b.*,
+        a.name as account_name,
         c.name as category_name,
         c.icon as category_icon
       FROM bills b
@@ -136,8 +136,9 @@ class StatisticsModel {
       LEFT JOIN categories c ON b.category_id = c.id
       WHERE b.user_id = ?
       ORDER BY b.bill_time DESC, b.id DESC
-      LIMIT ?`,
-      [userId, limit]
+      LIMIT ${parseInt(limit)}`
+      ,
+      [userId]
     );
     return rows;
   }

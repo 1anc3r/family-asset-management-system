@@ -604,7 +604,7 @@ onUnmounted(() => {
 @media (max-width: 768px) {
   .accounts-page {
     .stat-cards {
-      margin-bottom: 10px;
+      margin-bottom: 0px;
     }
 
     .stat-card {

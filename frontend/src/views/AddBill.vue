@@ -4,52 +4,43 @@
       <template #header>
         <div class="card-header">
           <span class="card-title">
-            <el-icon><CirclePlusFilled /></el-icon>
+            <el-icon>
+              <CirclePlusFilled />
+            </el-icon>
             记一笔
           </span>
         </div>
       </template>
 
-      <el-form
-        ref="formRef"
-        :model="form"
-        :rules="rules"
-        :label-width="isMobile ? '80px' : '100px'"
-        class="bill-form"
-        :label-position="isMobile ? 'top' : 'right'"
-      >
+      <el-form ref="formRef" :model="form" :rules="rules" :label-width="isMobile ? '80px' : '100px'" class="bill-form"
+        :label-position="isMobile ? 'top' : 'right'">
         <!-- 账单类型选择 -->
         <el-form-item label="类型">
           <el-radio-group v-model="form.type" size="large" @change="handleTypeChange" class="type-radio-group">
             <el-radio-button label="expense">
-              <el-icon><Bottom /></el-icon> 支出
+              <el-icon>
+                <Bottom />
+              </el-icon> 支出
             </el-radio-button>
             <el-radio-button label="income">
-              <el-icon><Top /></el-icon> 收入
+              <el-icon>
+                <Top />
+              </el-icon> 收入
             </el-radio-button>
             <el-radio-button label="transfer">
-              <el-icon><Switch /></el-icon> 转账
+              <el-icon>
+                <Switch />
+              </el-icon> 转账
             </el-radio-button>
           </el-radio-group>
         </el-form-item>
 
         <!-- 金额 -->
         <el-form-item label="金额" prop="amount">
-          <el-input-number
-            v-model="form.amount"
-            :min="0.01"
-            :precision="2"
-            :step="10"
-            size="large"
-            class="amount-input"
-          />
+          <el-input-number v-model="form.amount" :min="0.01" :precision="2" :step="10" size="large"
+            class="amount-input" />
           <div class="quick-amount">
-            <el-tag
-              v-for="amount in quickAmounts"
-              :key="amount"
-              class="quick-amount-tag"
-              @click="form.amount = amount"
-            >
+            <el-tag v-for="amount in quickAmounts" :key="amount" class="quick-amount-tag" @click="form.amount = amount">
               ¥{{ amount }}
             </el-tag>
           </div>
@@ -57,46 +48,24 @@
 
         <!-- 账户 -->
         <el-form-item :label="form.type === 'transfer' ? '转出账户' : '账户'" prop="account_id">
-          <el-select
-            v-model="form.account_id"
-            placeholder="选择账户"
-            size="large"
-            class="full-width-select"
-          >
+          <el-select v-model="form.account_id" placeholder="选择账户" size="large" class="full-width-select">
             <el-option-group label="资产账户">
-              <el-option
-                v-for="account in assetAccounts"
-                :key="account.id"
-                :label="`${account.name} (¥${formatAmount(account.balance)})`"
-                :value="account.id"
-              />
+              <el-option v-for="account in assetAccounts" :key="account.id"
+                :label="`${account.name} (¥${formatAmount(account.balance)})`" :value="account.id" />
             </el-option-group>
             <el-option-group v-if="form.type === 'expense'" label="负债账户">
-              <el-option
-                v-for="account in liabilityAccounts"
-                :key="account.id"
-                :label="`${account.name} (¥${formatAmount(account.balance)})`"
-                :value="account.id"
-              />
+              <el-option v-for="account in liabilityAccounts" :key="account.id"
+                :label="`${account.name} (¥${formatAmount(account.balance)})`" :value="account.id" />
             </el-option-group>
           </el-select>
         </el-form-item>
 
         <!-- 目标账户（转账时显示） -->
         <el-form-item v-if="form.type === 'transfer'" label="转入账户" prop="to_account_id">
-          <el-select
-            v-model="form.to_account_id"
-            placeholder="选择目标账户"
-            size="large"
-            class="full-width-select"
-          >
+          <el-select v-model="form.to_account_id" placeholder="选择目标账户" size="large" class="full-width-select">
             <el-option-group label="资产账户">
-              <el-option
-                v-for="account in assetAccounts.filter(a => a.id !== form.account_id)"
-                :key="account.id"
-                :label="`${account.name} (¥${formatAmount(account.balance)})`"
-                :value="account.id"
-              />
+              <el-option v-for="account in assetAccounts.filter(a => a.id !== form.account_id)" :key="account.id"
+                :label="`${account.name} (¥${formatAmount(account.balance)})`" :value="account.id" />
             </el-option-group>
           </el-select>
         </el-form-item>
@@ -104,14 +73,11 @@
         <!-- 分类（非转账时显示） -->
         <el-form-item v-if="form.type !== 'transfer'" label="分类" prop="category_id">
           <div class="category-list">
-            <div
-              v-for="category in filteredCategories"
-              :key="category.id"
-              class="category-item"
-              :class="{ active: form.category_id === category.id }"
-              @click="form.category_id = category.id"
-            >
-              <el-icon v-if="category.icon"><component :is="category.icon" /></el-icon>
+            <div v-for="category in filteredCategories" :key="category.id" class="category-item"
+              :class="{ active: form.category_id === category.id }" @click="form.category_id = category.id">
+              <el-icon v-if="category.icon">
+                <component :is="category.icon" />
+              </el-icon>
               <span>{{ category.name }}</span>
             </div>
           </div>
@@ -119,39 +85,20 @@
 
         <!-- 日期 -->
         <el-form-item label="日期" prop="bill_time">
-          <el-date-picker
-            v-model="form.bill_time"
-            type="datetime"
-            placeholder="选择日期时间"
-            size="large"
-            class="full-width-select"
-            format="YYYY-MM-DD HH:mm"
-            value-format="YYYY-MM-DD HH:mm:ss"
-          />
+          <el-date-picker v-model="form.bill_time" type="datetime" placeholder="选择日期时间" size="large"
+            class="full-width-select" format="YYYY-MM-DD HH:mm" value-format="YYYY-MM-DD HH:mm:ss" />
         </el-form-item>
 
         <!-- 备注 -->
         <el-form-item label="备注">
-          <el-input
-            v-model="form.remark"
-            type="textarea"
-            :rows="isMobile ? 2 : 3"
-            placeholder="添加备注（可选）"
-            maxlength="200"
-            show-word-limit
-          />
+          <el-input v-model="form.remark" type="textarea" :rows="isMobile ? 2 : 3" placeholder="添加备注（可选）"
+            maxlength="200" show-word-limit />
         </el-form-item>
 
         <!-- 提交按钮 -->
         <el-form-item>
           <div class="form-actions">
-            <el-button
-              type="primary"
-              size="large"
-              :loading="submitting"
-              class="submit-btn"
-              @click="handleSubmit"
-            >
+            <el-button type="primary" size="large" :loading="submitting" class="submit-btn" @click="handleSubmit">
               保存
             </el-button>
             <el-button size="large" class="submit-btn" @click="handleReset">重置</el-button>
@@ -187,7 +134,7 @@ const accounts = ref([])
 const categories = ref([])
 
 // 快捷金额
-const quickAmounts = [10, 20, 50, 100, 200, 500]
+const quickAmounts = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000]
 
 // 表单
 const form = reactive({
@@ -411,6 +358,7 @@ onUnmounted(() => {
 @media (max-width: 768px) {
   .add-bill-page {
     .bill-form {
+
       /* 类型选择按钮组全宽 */
       .type-radio-group {
         display: flex;
@@ -433,6 +381,10 @@ onUnmounted(() => {
         :deep(.el-input__wrapper) {
           width: 100%;
         }
+      }
+
+      .full-width-select {
+        width: 100%;
       }
 
       .quick-amount {

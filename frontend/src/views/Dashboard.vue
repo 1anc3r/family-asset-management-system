@@ -396,7 +396,7 @@ onUnmounted(() => {
         display: flex;
         align-items: center;
 
-        .stat-icon {  
+        .stat-icon {
           width: 60px;
           height: 60px;
           border-radius: 8px;
@@ -487,6 +487,7 @@ onUnmounted(() => {
   .bill-card {
     .bill-list {
       height: 300px;
+
       .bill-item {
         display: flex;
         align-items: center;
@@ -621,7 +622,7 @@ onUnmounted(() => {
 @media (max-width: 768px) {
   .dashboard-page {
     .stat-cards {
-      margin-bottom: 10px;
+      margin-bottom: 0px;
     }
 
     .stat-card {

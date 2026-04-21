@@ -1,7 +1,7 @@
 <template>
   <div class="budget-page">
     <!-- 预算概览 -->
-    <el-row :gutter="isMobile ? 10 : 20" class="section">
+    <el-row :gutter="isMobile ? 10 : 20" class="budget-cards">
       <el-col :xs="24" :sm="8" :md="8">
         <el-card shadow="hover">
           <div class="budget-summary">
@@ -29,7 +29,7 @@
         </el-card>
       </el-col>
     </el-row>
-    
+
     <!-- 总体预算进度 -->
     <el-card shadow="hover" class="section">
       <template #header>
@@ -39,25 +39,23 @@
         </div>
       </template>
       <div class="overall-progress">
-        <el-progress
-          :percentage="Math.min(summary.used_percent, 100)"
-          :status="getProgressStatus(summary.used_percent)"
-          :stroke-width="isMobile ? 14 : 20"
-          :format="(p) => `${p}%`"
-        />
+        <el-progress :percentage="Math.min(summary.used_percent, 100)" :status="getProgressStatus(summary.used_percent)"
+          :stroke-width="isMobile ? 14 : 20" :format="(p) => `${p}%`" />
         <div class="progress-info">
           <span>已用 {{ summary.used_percent }}%</span>
           <span>剩余 ¥{{ formatAmount(summary.total_remaining) }}</span>
         </div>
       </div>
     </el-card>
-    
+
     <!-- 分类预算 -->
     <el-card shadow="hover" class="section">
       <template #header>
         <div class="card-header">
           <span class="card-title">
-            <el-icon><Aim /></el-icon>
+            <el-icon>
+              <Aim />
+            </el-icon>
             分类预算
           </span>
           <div class="header-actions">
@@ -65,31 +63,33 @@
               <el-option v-for="m in monthOptions" :key="m.value" :label="m.label" :value="m.value" />
             </el-select>
             <el-button type="primary" size="small" @click="handleAdd">
-              <el-icon><Plus /></el-icon>添加
+              <el-icon>
+                <Plus />
+              </el-icon>添加
             </el-button>
             <el-button size="small" @click="handleCopyFromLastMonth">
-              <el-icon><CopyDocument /></el-icon>复制
+              <el-icon>
+                <CopyDocument />
+              </el-icon>复制
             </el-button>
           </div>
         </div>
       </template>
-      
+
       <div v-if="budgetList.length === 0" class="empty-data">
         <el-empty description="暂无预算设置">
           <el-button type="primary" @click="handleAdd">添加预算</el-button>
         </el-empty>
       </div>
-      
+
       <div v-else class="budget-list">
-        <div
-          v-for="budget in budgetList"
-          :key="budget.id"
-          class="budget-item"
-          :class="{ 'is-over': budget.is_over, 'is-alert': budget.is_alert && !budget.is_over }"
-        >
+        <div v-for="budget in budgetList" :key="budget.id" class="budget-item"
+          :class="{ 'is-over': budget.is_over, 'is-alert': budget.is_alert && !budget.is_over }">
           <div class="budget-info">
             <div class="budget-name">
-              <el-icon v-if="budget.category_icon"><component :is="budget.category_icon" /></el-icon>
+              <el-icon v-if="budget.category_icon">
+                <component :is="budget.category_icon" />
+              </el-icon>
               <span>{{ budget.category_name || '总预算' }}</span>
             </div>
             <div class="budget-amount">
@@ -98,31 +98,32 @@
               <span class="total">¥{{ formatAmount(budget.amount) }}</span>
             </div>
           </div>
-          
+
           <div class="budget-progress">
-            <el-progress
-              :percentage="Math.min(budget.used_percent, 100)"
-              :status="getProgressStatus(budget.used_percent)"
-              :stroke-width="isMobile ? 8 : 10"
-            />
+            <el-progress :percentage="Math.min(budget.used_percent, 100)"
+              :status="getProgressStatus(budget.used_percent)" :stroke-width="isMobile ? 8 : 10" />
             <div class="progress-text">
               <span v-if="budget.is_over" class="over-text">已超支 ¥{{ formatAmount(Math.abs(budget.remaining)) }}</span>
               <span v-else>剩余 ¥{{ formatAmount(budget.remaining) }}</span>
             </div>
           </div>
-          
+
           <div class="budget-actions">
             <el-button type="primary" link size="small" @click="handleEdit(budget)">
-              <el-icon><Edit /></el-icon>
+              <el-icon>
+                <Edit />
+              </el-icon>
             </el-button>
             <el-button type="danger" link size="small" @click="handleDelete(budget)">
-              <el-icon><Delete /></el-icon>
+              <el-icon>
+                <Delete />
+              </el-icon>
             </el-button>
           </div>
         </div>
       </div>
     </el-card>
-    
+
     <!-- 添加/编辑弹窗 -->
     <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑预算' : '添加预算'" width="480px">
       <el-form ref="formRef" :model="form" :rules="rules" label-position="top">
@@ -132,27 +133,28 @@
             <el-radio-button label="category">分类预算</el-radio-button>
           </el-radio-group>
         </el-form-item>
-        
+
         <el-form-item v-if="form.category_type === 'category'" label="分类" prop="category_id">
           <el-select v-model="form.category_id" placeholder="选择支出分类" style="width: 100%">
             <el-option v-for="cat in expenseCategories" :key="cat.id" :label="cat.name" :value="cat.id" />
           </el-select>
         </el-form-item>
-        
+
         <el-form-item label="预算金额" prop="amount">
           <el-input-number v-model="form.amount" :min="1" :precision="2" :step="100" style="width: 200px" />
         </el-form-item>
-        
+
         <el-form-item label="预算月份" prop="year_month">
-          <el-date-picker v-model="form.year_month" type="month" placeholder="选择月份" value-format="YYYY-MM" style="width: 200px" />
+          <el-date-picker v-model="form.year_month" type="month" placeholder="选择月份" value-format="YYYY-MM"
+            style="width: 200px" />
         </el-form-item>
-        
+
         <el-form-item label="预警阈值">
           <el-slider v-model="form.alert_threshold" :max="100" :step="10" show-stops />
           <div class="threshold-text">当支出达到 {{ form.alert_threshold }}% 时预警</div>
         </el-form-item>
       </el-form>
-      
+
       <template #footer>
         <el-button @click="dialogVisible = false">取消</el-button>
         <el-button type="primary" :loading="submitting" @click="handleSubmit">保存</el-button>
@@ -210,7 +212,7 @@ const monthOptions = computed(() => {
 const currentMonth = computed(() => moment(selectedMonth.value).format('YYYY年MM月'))
 
 // 支出分类
-const expenseCategories = computed(() => 
+const expenseCategories = computed(() =>
   categories.value.filter(c => c.type === 'expense' && c.status === 1)
 )
 
@@ -324,7 +326,7 @@ const handleSubmit = async () => {
     ElMessage.warning('请选择支出分类')
     return
   }
-  
+
   submitting.value = true
   try {
     const data = {
@@ -333,7 +335,7 @@ const handleSubmit = async () => {
       year_month: form.year_month,
       alert_threshold: form.alert_threshold
     }
-    
+
     if (isEdit.value) {
       const res = await updateBudget(form.id, data)
       if (res.code === 200) {
@@ -394,6 +396,10 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .budget-page {
+  .budget-cards {
+    margin-bottom: 20px;
+  }
+
   .section {
     margin-bottom: 20px;
   }
@@ -537,6 +543,10 @@ onMounted(() => {
 /* 移动端适配 */
 @media (max-width: 768px) {
   .budget-page {
+    .budget-cards {
+      margin-bottom: 0px;
+    }
+
     .budget-list {
       .budget-item {
         flex-direction: column;
@@ -556,6 +566,10 @@ onMounted(() => {
           align-self: flex-end;
         }
       }
+    }
+
+    .section {
+      margin-bottom: 10px;
     }
 
     .card-header {

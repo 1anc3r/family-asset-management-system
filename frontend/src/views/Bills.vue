@@ -5,12 +5,7 @@
       <el-form :model="filterForm" :inline="!isMobile" :label-position="isMobile ? 'top' : 'right'" class="filter-form">
         <el-form-item label="账户">
           <el-select v-model="filterForm.account_id" placeholder="全部账户" clearable class="filter-select">
-            <el-option
-              v-for="account in accounts"
-              :key="account.id"
-              :label="account.name"
-              :value="account.id"
-            />
+            <el-option v-for="account in accounts" :key="account.id" :label="account.name" :value="account.id" />
           </el-select>
         </el-form-item>
 
@@ -25,53 +20,34 @@
         <el-form-item label="分类">
           <el-select v-model="filterForm.category_id" placeholder="全部分类" clearable class="filter-select">
             <el-option-group label="支出">
-              <el-option
-                v-for="cat in expenseCategories"
-                :key="cat.id"
-                :label="cat.name"
-                :value="cat.id"
-              />
+              <el-option v-for="cat in expenseCategories" :key="cat.id" :label="cat.name" :value="cat.id" />
             </el-option-group>
             <el-option-group label="收入">
-              <el-option
-                v-for="cat in incomeCategories"
-                :key="cat.id"
-                :label="cat.name"
-                :value="cat.id"
-              />
+              <el-option v-for="cat in incomeCategories" :key="cat.id" :label="cat.name" :value="cat.id" />
             </el-option-group>
           </el-select>
         </el-form-item>
 
         <el-form-item label="日期">
-          <el-date-picker
-            v-model="dateRange"
-            type="daterange"
-            range-separator="至"
-            start-placeholder="开始日期"
-            end-placeholder="结束日期"
-            value-format="YYYY-MM-DD"
-            class="filter-date"
-          />
+          <el-date-picker v-model="dateRange" type="daterange" range-separator="至" start-placeholder="开始日期"
+            end-placeholder="结束日期" value-format="YYYY-MM-DD" class="filter-date" />
         </el-form-item>
 
         <el-form-item label="关键词">
-          <el-input
-            v-model="filterForm.keyword"
-            placeholder="搜索备注"
-            clearable
-            style="width: 300px" 
-            class="filter-input"
-          />
+          <el-input v-model="filterForm.keyword" placeholder="搜索备注" clearable class="filter-input" />
         </el-form-item>
 
         <el-form-item>
           <div class="filter-actions">
             <el-button type="primary" @click="handleSearch">
-              <el-icon><Search /></el-icon>查询
+              <el-icon>
+                <Search />
+              </el-icon>查询
             </el-button>
             <el-button @click="handleReset">
-              <el-icon><RefreshRight /></el-icon>重置
+              <el-icon>
+                <RefreshRight />
+              </el-icon>重置
             </el-button>
           </div>
         </el-form-item>
@@ -84,19 +60,16 @@
         <div class="card-header">
           <span class="card-title">账单列表</span>
           <el-button type="primary" @click="$router.push('/bill/add')">
-            <el-icon><Plus /></el-icon>记一笔
+            <el-icon>
+              <Plus />
+            </el-icon>记一笔
           </el-button>
         </div>
       </template>
 
       <!-- 桌面端：表格展示 -->
       <div v-if="!isMobile" class="table-wrapper">
-        <el-table
-          v-loading="loading"
-          :data="billList"
-          stripe
-          style="width: 100%"
-        >
+        <el-table v-loading="loading" :data="billList" stripe style="width: 100%">
           <el-table-column label="类型" width="80">
             <template #default="{ row }">
               <el-tag :type="getTypeTagType(row.type)" size="small">
@@ -145,10 +118,14 @@
           <el-table-column label="操作" width="150" fixed="right">
             <template #default="{ row }">
               <el-button type="primary" link @click="handleEdit(row)">
-                <el-icon><Edit /></el-icon>编辑
+                <el-icon>
+                  <Edit />
+                </el-icon>编辑
               </el-button>
               <el-button type="danger" link @click="handleDelete(row)">
-                <el-icon><Delete /></el-icon>删除
+                <el-icon>
+                  <Delete />
+                </el-icon>删除
               </el-button>
             </template>
           </el-table-column>
@@ -160,11 +137,7 @@
         <div v-if="billList.length === 0" class="empty-data">
           <el-empty description="暂无账单" />
         </div>
-        <div
-          v-for="bill in billList"
-          :key="bill.id"
-          class="mobile-bill-item"
-        >
+        <div v-for="bill in billList" :key="bill.id" class="mobile-bill-item">
           <div class="mobile-bill-main">
             <div class="mobile-bill-left">
               <el-tag :type="getTypeTagType(bill.type)" size="small" class="type-tag">
@@ -188,10 +161,14 @@
           </div>
           <div class="mobile-bill-actions">
             <el-button type="primary" link size="small" @click="handleEdit(bill)">
-              <el-icon><Edit /></el-icon>编辑
+              <el-icon>
+                <Edit />
+              </el-icon>编辑
             </el-button>
             <el-button type="danger" link size="small" @click="handleDelete(bill)">
-              <el-icon><Delete /></el-icon>删除
+              <el-icon>
+                <Delete />
+              </el-icon>删除
             </el-button>
           </div>
         </div>
@@ -199,33 +176,18 @@
 
       <!-- 分页 -->
       <div class="pagination">
-        <el-pagination
-          v-model:current-page="pagination.page"
-          v-model:page-size="pagination.pageSize"
-          :page-sizes="[10, 20, 50, 100]"
-          :total="pagination.total"
-          :layout="isMobile ? 'total, prev, pager, next' : 'total, sizes, prev, pager, next, jumper'"
-          :small="isMobile"
-          @size-change="handleSizeChange"
-          @current-change="handlePageChange"
-        />
+        <el-pagination v-model:current-page="pagination.page" v-model:page-size="pagination.pageSize"
+          :page-sizes="[10, 20, 50, 100]" :total="pagination.total"
+          :layout="isMobile ? 'total, prev, pager, next' : 'total, sizes, prev, pager, next, jumper'" :small="isMobile"
+          @size-change="handleSizeChange" @current-change="handlePageChange" />
       </div>
     </el-card>
 
     <!-- 编辑弹窗 -->
-    <el-dialog
-      v-model="editDialogVisible"
-      title="编辑账单"
-      :width="isMobile ? '92%' : '600px'"
-      :close-on-click-modal="false"
-    >
-      <el-form
-        ref="editFormRef"
-        :model="editForm"
-        :rules="editRules"
-        :label-width="isMobile ? '80px' : '100px'"
-        :label-position="isMobile ? 'top' : 'right'"
-      >
+    <el-dialog v-model="editDialogVisible" title="编辑账单" :width="isMobile ? '92%' : '600px'"
+      :close-on-click-modal="false">
+      <el-form ref="editFormRef" :model="editForm" :rules="editRules" :label-width="isMobile ? '80px' : '100px'"
+        :label-position="isMobile ? 'top' : 'right'">
         <el-form-item label="类型">
           <el-radio-group v-model="editForm.type" disabled>
             <el-radio-button label="expense">支出</el-radio-button>
@@ -235,65 +197,37 @@
         </el-form-item>
 
         <el-form-item label="金额" prop="amount">
-          <el-input-number
-            v-model="editForm.amount"
-            :min="0.01"
-            :precision="2"
-            style="width: 100%"
-          />
+          <el-input-number v-model="editForm.amount" :min="0.01" :precision="2" style="width: 100%" />
         </el-form-item>
 
         <el-form-item label="账户" prop="account_id">
           <el-select v-model="editForm.account_id" class="full-width">
-            <el-option
-              v-for="account in accounts"
-              :key="account.id"
-              :label="account.name"
-              :value="account.id"
-            />
+            <el-option v-for="account in accounts" :key="account.id" :label="account.name" :value="account.id" />
           </el-select>
         </el-form-item>
 
         <el-form-item v-if="editForm.type === 'transfer'" label="目标账户" prop="to_account_id">
           <el-select v-model="editForm.to_account_id" class="full-width">
-            <el-option
-              v-for="account in accounts.filter(a => a.id !== editForm.account_id)"
-              :key="account.id"
-              :label="account.name"
-              :value="account.id"
-            />
+            <el-option v-for="account in accounts.filter(a => a.id !== editForm.account_id)" :key="account.id"
+              :label="account.name" :value="account.id" />
           </el-select>
         </el-form-item>
 
         <el-form-item v-if="editForm.type !== 'transfer'" label="分类" prop="category_id">
           <el-select v-model="editForm.category_id" class="full-width">
-            <el-option
-              v-for="cat in editForm.type === 'expense' ? expenseCategories : incomeCategories"
-              :key="cat.id"
-              :label="cat.name"
-              :value="cat.id"
-            />
+            <el-option v-for="cat in editForm.type === 'expense' ? expenseCategories : incomeCategories" :key="cat.id"
+              :label="cat.name" :value="cat.id" />
           </el-select>
         </el-form-item>
 
         <el-form-item label="日期" prop="bill_time">
-          <el-date-picker
-            v-model="editForm.bill_time"
-            type="datetime"
-            class="full-width"
-            format="YYYY-MM-DD HH:mm"
-            value-format="YYYY-MM-DD HH:mm:ss"
-          />
+          <el-date-picker v-model="editForm.bill_time" type="datetime" class="full-width" format="YYYY-MM-DD HH:mm"
+            value-format="YYYY-MM-DD HH:mm:ss" />
         </el-form-item>
 
         <el-form-item label="备注">
-          <el-input
-            v-model="editForm.remark"
-            type="textarea"
-            :rows="isMobile ? 2 : 3"
-            maxlength="200"
-            show-word-limit
-          />
+          <el-input v-model="editForm.remark" type="textarea" :rows="isMobile ? 2 : 3" maxlength="200"
+            show-word-limit />
         </el-form-item>
       </el-form>
 
@@ -565,10 +499,12 @@ onUnmounted(() => {
   }
 
   .filter-form {
+    margin-top: 20px;
+
     .filter-select,
     .filter-input,
     .filter-date {
-      width: 100%;
+      width: 100px;
     }
 
     .filter-actions {
@@ -676,6 +612,12 @@ onUnmounted(() => {
   .bills-page {
     .filter-card {
       margin-bottom: 10px;
+
+      .filter-select,
+      .filter-input,
+      .filter-date {
+        width: 100%;
+      }
 
       .filter-actions {
         width: 100%;

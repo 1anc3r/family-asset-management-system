@@ -1,57 +1,72 @@
 <template>
   <div class="bills-page">
-    <!-- 筛选条件 -->
-    <el-card shadow="hover" class="filter-card">
-      <el-form :model="filterForm" :inline="!isMobile" :label-position="isMobile ? 'top' : 'right'" class="filter-form">
-        <el-form-item label="账户">
-          <el-select v-model="filterForm.account_id" placeholder="全部账户" clearable class="filter-select">
-            <el-option v-for="account in accounts" :key="account.id" :label="account.name" :value="account.id" />
-          </el-select>
-        </el-form-item>
+    <!-- 筛选卡片 -->
+    <el-card class="filter-card" :class="{ collapsed: isFilterCollapsed }">
+      <div class="filter-header" @click="toggleFilter">
+        <span class="filter-title">
+          <el-icon>
+            <Filter />
+          </el-icon>
+          筛选条件
+        </span>
+        <el-icon class="collapse-icon" :class="{ rotated: isFilterCollapsed }">
+          <ArrowUp />
+        </el-icon>
+      </div>
 
-        <el-form-item label="类型">
-          <el-select v-model="filterForm.type" placeholder="全部类型" clearable class="filter-select">
-            <el-option label="支出" value="expense" />
-            <el-option label="收入" value="income" />
-            <el-option label="转账" value="transfer" />
-          </el-select>
-        </el-form-item>
+      <!-- 筛选内容区域 -->
+      <div class="filter-body" v-show="!isFilterCollapsed">
+        <el-row :gutter="16">
+          <el-col :xs="24" :sm="8">
+            <el-form-item label="账户" class="form-item">
+              <el-select v-model="filterForm.account" placeholder="全部账户" clearable>
+                <el-option label="现金" value="cash" />
+                <el-option label="支付宝" value="alipay" />
+              </el-select>
+            </el-form-item>
+          </el-col>
 
-        <el-form-item label="分类">
-          <el-select v-model="filterForm.category_id" placeholder="全部分类" clearable class="filter-select">
-            <el-option-group label="支出">
-              <el-option v-for="cat in expenseCategories" :key="cat.id" :label="cat.name" :value="cat.id" />
-            </el-option-group>
-            <el-option-group label="收入">
-              <el-option v-for="cat in incomeCategories" :key="cat.id" :label="cat.name" :value="cat.id" />
-            </el-option-group>
-          </el-select>
-        </el-form-item>
+          <el-col :xs="24" :sm="8">
+            <el-form-item label="类型" class="form-item">
+              <el-select v-model="filterForm.type" placeholder="全部类型" clearable>
+                <el-option label="支出" value="expense" />
+                <el-option label="收入" value="income" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+
+          <el-col :xs="24" :sm="8">
+            <el-form-item label="分类" class="form-item">
+              <el-select v-model="filterForm.category" placeholder="全部分类" clearable>
+                <el-option label="餐饮" value="food" />
+                <el-option label="交通" value="transport" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
 
         <el-form-item label="日期">
-          <el-date-picker v-model="dateRange" type="daterange" range-separator="至" start-placeholder="开始日期"
-            end-placeholder="结束日期" value-format="YYYY-MM-DD" class="filter-date" />
+          <el-date-picker v-model="filterForm.dateRange" type="daterange" range-separator="至" start-placeholder="开始日期"
+            end-placeholder="结束日期" style="width: 100%" />
         </el-form-item>
 
         <el-form-item label="关键词">
-          <el-input v-model="filterForm.keyword" placeholder="搜索备注" clearable class="filter-input" />
+          <el-input v-model="filterForm.keyword" placeholder="搜索备注" clearable />
         </el-form-item>
 
-        <el-form-item>
-          <div class="filter-actions">
-            <el-button type="primary" @click="handleSearch">
-              <el-icon>
-                <Search />
-              </el-icon>查询
-            </el-button>
-            <el-button @click="handleReset">
-              <el-icon>
-                <RefreshRight />
-              </el-icon>重置
-            </el-button>
-          </div>
+        <el-form-item class="filter-actions">
+          <el-button type="primary" @click="handleSearch">
+            <el-icon>
+              <Search />
+            </el-icon>查询
+          </el-button>
+          <el-button @click="handleReset">
+            <el-icon>
+              <RefreshRight />
+            </el-icon>重置
+          </el-button>
         </el-form-item>
-      </el-form>
+      </div>
     </el-card>
 
     <!-- 账单列表 -->
@@ -306,6 +321,14 @@ const editRules = {
   ]
 }
 
+// 折叠状态
+const isFilterCollapsed = ref(true)
+
+// 切换折叠
+const toggleFilter = () => {
+  isFilterCollapsed.value = !isFilterCollapsed.value
+}
+
 // 计算属性
 const expenseCategories = computed(() => categories.value.filter(c => c.type === 'expense'))
 const incomeCategories = computed(() => categories.value.filter(c => c.type === 'income'))
@@ -494,140 +517,134 @@ onUnmounted(() => {
 
 <style scoped lang="scss">
 .bills-page {
+  padding: 12px;
+
   .filter-card {
-    margin-bottom: 20px;
-  }
+    margin-bottom: 12px;
+    transition: all 0.3s ease;
 
-  .filter-form {
-    margin-top: 20px;
-
-    .filter-select,
-    .filter-input,
-    .filter-date {
-      width: 100px;
+    :deep(.el-card__body) {
+      padding: 0; // 去掉默认padding，由内部控制
     }
 
-    .filter-actions {
+    .filter-header {
       display: flex;
-      gap: 10px;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      cursor: pointer;
+      user-select: none;
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.3s;
+
+      &:hover {
+        background-color: #f5f7fa;
+      }
+
+      .filter-title {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        color: #303133;
+
+        .el-icon {
+          color: #409eff;
+        }
+      }
+
+      .collapse-icon {
+        font-size: 16px;
+        color: #909399;
+        transition: transform 0.3s ease;
+
+        &.rotated {
+          transform: rotate(180deg);
+        }
+      }
+    }
+
+    // 展开状态：显示下边框
+    &:not(.collapsed) .filter-header {
+      border-bottom-color: #ebeef5;
+    }
+
+    .filter-body {
+      padding: 12px 16px 16px;
+      animation: slideDown 0.3s ease;
+
+      :deep(.el-form-item) {
+        margin-top: 12px;
+        margin-bottom: 12px;
+
+        &:last-child {
+          margin-bottom: 0;
+        }
+      }
+
+      :deep(.el-form-item__label) {
+        padding-bottom: 4px;
+        line-height: 1.5;
+      }
+
+      .filter-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid #ebeef5;
+      }
     }
   }
 
   .list-card {
-    .card-header {
+    .list-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-    }
 
-    .table-wrapper {
-      overflow-x: auto;
-    }
-
-    .pagination {
-      margin-top: 20px;
-      display: flex;
-      justify-content: flex-end;
-    }
-  }
-
-  /* 移动端卡片式账单列表 */
-  .mobile-bill-list {
-    .mobile-bill-item {
-      padding: 12px 0;
-      border-bottom: 1px solid #ebeef5;
-
-      &:last-child {
-        border-bottom: none;
-      }
-
-      .mobile-bill-main {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 8px;
-
-        .mobile-bill-left {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-
-          .type-tag {
-            flex-shrink: 0;
-          }
-
-          .mobile-bill-category {
-            font-size: 14px;
-            color: #303133;
-          }
-        }
-
-        .mobile-bill-amount {
-          font-size: 16px;
-          font-weight: 600;
-          flex-shrink: 0;
-        }
-      }
-
-      .mobile-bill-detail {
-        padding-left: 4px;
-        margin-bottom: 8px;
-
-        .detail-item {
-          font-size: 12px;
-          color: #909399;
-          margin-bottom: 4px;
-
-          &.remark {
-            color: #606266;
-          }
-
-          &.time {
-            font-size: 11px;
-          }
-        }
-      }
-
-      .mobile-bill-actions {
-        display: flex;
-        gap: 10px;
-        padding-left: 4px;
+      h3 {
+        margin: 0;
+        font-size: 16px;
       }
     }
   }
+}
 
-  .dialog-footer {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
+// 展开动画
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
   }
 
-  .full-width {
-    width: 100%;
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
 /* ========== 移动端H5适配 ========== */
 @media (max-width: 768px) {
   .bills-page {
-    .filter-card {
-      margin-bottom: 10px;
+    padding: 8px;
 
-      .filter-select,
-      .filter-input,
-      .filter-date {
-        width: 100%;
+    .filter-card {
+      .filter-header {
+        padding: 10px 12px;
+      }
+
+      .filter-body {
+        padding: 10px 12px 12px;
       }
 
       .filter-actions {
-        width: 100%;
-        justify-content: flex-end;
-      }
-    }
-
-    .list-card {
-      .pagination {
-        justify-content: center;
+        :deep(.el-button) {
+          flex: 1;
+          justify-content: center;
+        }
       }
     }
   }

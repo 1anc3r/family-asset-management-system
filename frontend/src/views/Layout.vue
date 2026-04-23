@@ -1,7 +1,6 @@
 <template>
   <el-container class="layout-container">
     <!-- 左侧导航 -->
-    <!-- 移动端下侧边栏改为 fixed 定位覆盖层模式 -->
     <el-aside
       :width="isCollapse ? '64px' : '220px'"
       class="sidebar"
@@ -36,14 +35,14 @@
       </el-menu>
     </el-aside>
 
-    <!-- 移动端遮罩层：点击关闭侧边栏 -->
+    <!-- 移动端遮罩层 -->
     <div
       v-if="isMobile && mobileMenuVisible"
       class="sidebar-mask"
       @click="mobileMenuVisible = false"
     ></div>
 
-    <el-container>
+    <el-container class="main-wrapper" :class="{ 'has-tabbar': isMobile }">
       <!-- 顶部导航 -->
       <el-header class="header">
         <div class="header-left">
@@ -54,9 +53,7 @@
             <Fold v-if="!isCollapse || (isMobile && mobileMenuVisible)" />
             <Expand v-else />
           </el-icon>
-          <!-- 移动端隐藏面包屑，节省空间 -->
           <breadcrumb v-if="!isMobile" />
-          <!-- 移动端显示页面标题 -->
           <span v-else class="mobile-page-title">{{ currentPageTitle }}</span>
         </div>
 
@@ -89,6 +86,20 @@
           </transition>
         </router-view>
       </el-main>
+
+      <!-- 移动端底部Tab栏 -->
+      <div v-if="isMobile" class="mobile-tabbar">
+        <div
+          v-for="item in tabbarItems"
+          :key="item.path"
+          class="tabbar-item"
+          :class="{ active: activeMenu === item.path }"
+          @click="router.push(item.path)"
+        >
+          <el-icon size="20"><component :is="item.icon" /></el-icon>
+          <span class="tabbar-label">{{ item.title }}</span>
+        </div>
+      </div>
     </el-container>
   </el-container>
 </template>
@@ -121,6 +132,7 @@ const isCollapse = ref(false)
 const isMobile = ref(false)
 const mobileMenuVisible = ref(false)
 
+// 侧边栏菜单项（完整菜单）
 const menuItems = [
   { path: '/dashboard', title: '仪表盘', icon: 'HomeFilled' },
   { path: '/bill/add', title: '记一笔', icon: 'CirclePlusFilled' },
@@ -132,9 +144,18 @@ const menuItems = [
   { path: '/data-manage', title: '数据管理', icon: 'Setting' }
 ]
 
+// 移动端底部Tab栏菜单项（5个常用入口）
+const tabbarItems = [
+  { path: '/dashboard', title: '首页', icon: 'HomeFilled' },
+  { path: '/bill/add', title: '记账', icon: 'CirclePlusFilled' },
+  { path: '/bills', title: '账单', icon: 'List' },
+  { path: '/accounts', title: '资产', icon: 'WalletFilled' },
+  { path: '/statistics', title: '统计', icon: 'TrendCharts' }
+]
+
 const activeMenu = computed(() => route.path)
 
-// 计算当前页面标题（移动端顶部导航显示用）
+// 计算当前页面标题
 const currentPageTitle = computed(() => {
   const currentItem = menuItems.find(item => item.path === route.path)
   return currentItem ? currentItem.title : ''
@@ -174,7 +195,7 @@ const handleCommand = (command) => {
   }
 }
 
-// 响应式处理：检测屏幕宽度判断是否为移动端
+// 响应式处理
 const checkMobile = () => {
   isMobile.value = window.innerWidth <= 768
   if (isMobile.value) {
@@ -232,7 +253,6 @@ onUnmounted(() => {
     border-right: none;
   }
 
-  /* 折叠时的菜单样式调整 */
   :deep(.el-menu--collapse) {
     width: 64px;
   }
@@ -255,6 +275,18 @@ onUnmounted(() => {
   bottom: 0;
   background: rgba(0, 0, 0, 0.5);
   z-index: 1000;
+}
+
+/* ========== 主内容区包裹 ========== */
+.main-wrapper {
+  position: relative;
+
+  &.has-tabbar {
+    /* 移动端有底部Tab栏时，主内容区底部留出空间 */
+    .main-content {
+      padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+    }
+  }
 }
 
 /* ========== 顶部导航 ========== */
@@ -312,6 +344,57 @@ onUnmounted(() => {
   overflow-y: auto;
   background-color: #f5f7fa;
   min-height: calc(100vh - 60px);
+}
+
+/* ========== 移动端底部Tab栏 ========== */
+.mobile-tabbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: calc(56px + env(safe-area-inset-bottom, 0px));
+  background: #fff;
+  border-top: 1px solid #e4e7ed;
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-start;
+  padding-top: 6px;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  z-index: 998;
+
+  .tabbar-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    height: 44px;
+    color: #909399;
+    cursor: pointer;
+    transition: all 0.2s;
+    -webkit-tap-highlight-color: transparent;
+
+    .el-icon {
+      margin-bottom: 2px;
+    }
+
+    .tabbar-label {
+      font-size: 10px;
+      line-height: 1.2;
+    }
+
+    &:active {
+      opacity: 0.7;
+    }
+
+    &.active {
+      color: #409EFF;
+
+      .tabbar-label {
+        font-weight: 500;
+      }
+    }
+  }
 }
 
 /* ========== 过渡动画 ========== */

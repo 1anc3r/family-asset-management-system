@@ -147,44 +147,44 @@
         </el-table>
       </div>
 
-      <!-- 移动端：卡片列表展示 -->
+      <!-- 移动端：卡片列表 -->
       <div v-else class="mobile-bill-list">
-        <div v-if="billList.length === 0" class="empty-data">
-          <el-empty description="暂无账单" />
-        </div>
-        <div v-for="bill in billList" :key="bill.id" class="mobile-bill-item">
-          <div class="mobile-bill-main">
-            <div class="mobile-bill-left">
-              <el-tag :type="getTypeTagType(bill.type)" size="small" class="type-tag">
-                {{ getTypeText(bill.type) }}
-              </el-tag>
-              <div class="mobile-bill-category">{{ bill.category_name || '-' }}</div>
-            </div>
-            <div class="mobile-bill-amount" :class="getAmountClass(bill.type)">
+        <el-empty v-if="billList.length === 0" description="暂无账单" />
+
+        <div v-else v-for="bill in billList" :key="bill.id" class="mobile-bill-item">
+          <div class="bill-header">
+            <el-tag :type="getTypeTagType(bill.type)" size="small">
+              {{ getTypeText(bill.type) }}
+            </el-tag>
+            <span class="amount" :class="getAmountClass(bill.type)">
               {{ getAmountPrefix(bill.type) }}¥{{ formatAmount(bill.amount) }}
-            </div>
+            </span>
           </div>
-          <div class="mobile-bill-detail">
-            <div v-if="bill.type === 'transfer'" class="detail-item">
+
+          <div class="bill-info">
+            <span class="category">{{ bill.category_name || '-' }}</span>
+            <span v-if="bill.type === 'transfer'" class="account">
               {{ bill.account_name }} → {{ bill.to_account_name }}
-            </div>
-            <div v-else class="detail-item">
-              {{ bill.account_name }}
-            </div>
-            <div v-if="bill.remark" class="detail-item remark">备注：{{ bill.remark }}</div>
-            <div class="detail-item time">{{ formatDateTime(bill.bill_time) }}</div>
+            </span>
+            <span v-else class="account">{{ bill.account_name }}</span>
           </div>
-          <div class="mobile-bill-actions">
-            <el-button type="primary" link size="small" @click="handleEdit(bill)">
-              <el-icon>
-                <Edit />
-              </el-icon>编辑
-            </el-button>
-            <el-button type="danger" link size="small" @click="handleDelete(bill)">
-              <el-icon>
-                <Delete />
-              </el-icon>删除
-            </el-button>
+
+          <div v-if="bill.remark" class="bill-remark">{{ bill.remark }}</div>
+
+          <div class="bill-footer">
+            <span class="time">{{ formatDateTime(bill.bill_time) }}</span>
+            <div class="actions">
+              <el-button type="primary" link @click="handleEdit(bill)">
+                <el-icon>
+                  <Edit />
+                </el-icon>
+              </el-button>
+              <el-button type="danger" link @click="handleDelete(bill)">
+                <el-icon>
+                  <Delete />
+                </el-icon>
+              </el-button>
+            </div>
           </div>
         </div>
       </div>
@@ -629,7 +629,7 @@ onUnmounted(() => {
 /* ========== 移动端H5适配 ========== */
 @media (max-width: 768px) {
   .bills-page {
-    padding: 8px;
+    padding: 0px;
 
     .filter-card {
       .filter-header {
@@ -644,6 +644,83 @@ onUnmounted(() => {
         :deep(.el-button) {
           flex: 1;
           justify-content: center;
+        }
+      }
+    }
+
+    .mobile-bill-list {
+      .mobile-bill-item {
+        background: #fff;
+        border-radius: 8px;
+        padding: 12px;
+        margin-bottom: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+
+        .bill-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 8px;
+
+          .amount {
+            font-size: 16px;
+            font-weight: 600;
+
+            &.income {
+              color: #67c23a;
+            }
+
+            &.expense {
+              color: #f56c6c;
+            }
+          }
+        }
+
+        .bill-info {
+          display: flex;
+          gap: 8px;
+          margin-bottom: 6px;
+          font-size: 13px;
+          color: #606266;
+
+          .category {
+            color: #303133;
+            font-weight: 500;
+          }
+        }
+
+        .bill-remark {
+          font-size: 12px;
+          color: #909399;
+          margin-bottom: 8px;
+          line-height: 1.4;
+        }
+
+        .bill-footer {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding-top: 8px;
+          border-top: 1px solid #f0f0f0;
+
+          .time {
+            font-size: 12px;
+            color: #c0c4cc;
+          }
+
+          .actions {
+            display: flex;
+            gap: 4px;
+
+            :deep(.el-button) {
+              padding: 2px 4px;
+              height: auto;
+
+              .el-icon {
+                font-size: 14px;
+              }
+            }
+          }
         }
       }
     }

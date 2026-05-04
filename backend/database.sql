@@ -1,10 +1,10 @@
 -- ============================================
 -- 家庭资产管理记账系统 - 数据库初始化脚本
--- 数据库: family_asset
+-- 数据库: family_asset_management
 -- ============================================
 
 -- 创建数据库
-CREATE DATABASE IF NOT EXISTS family_asset DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE IF NOT EXISTS family_asset_management DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 USE family_asset_management;
 

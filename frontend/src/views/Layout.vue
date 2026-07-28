@@ -218,13 +218,17 @@ onUnmounted(() => {
 
 <style scoped lang="scss">
 .layout-container {
-  min-height: 100vh;
+  height: 100vh;        // 固定为视口高度
+  overflow: hidden;     // 禁止外层滚动，滚动由内部子区域各自管理
 }
 
 /* ========== 侧边栏 ========== */
 .sidebar {
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   background-color: #304156;
+  height: 100vh;        // 固定高度
+  overflow-y: auto;     // 侧边栏独立滚动
+  overflow-x: hidden;   // 禁止横向滚动
 
   .logo {
     height: 60px;
@@ -279,7 +283,9 @@ onUnmounted(() => {
 
 /* ========== 主内容区包裹 ========== */
 .main-wrapper {
-  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;     // 确保内部滚动不溢出外层
 
   &.has-tabbar {
     /* 移动端有底部Tab栏时，主内容区底部留出空间 */
@@ -340,10 +346,10 @@ onUnmounted(() => {
 
 /* ========== 主内容区 ========== */
 .main-content {
+  flex: 1;              // 占据剩余空间
+  overflow-y: auto;     // 主内容区独立滚动
   padding: 15px;
-  overflow-y: auto;
   background-color: #f5f7fa;
-  min-height: calc(100vh - 60px);
 }
 
 /* ========== 移动端底部Tab栏 ========== */
@@ -442,7 +448,6 @@ onUnmounted(() => {
   .main-content {
     padding: 10px;
     margin-left: 0 !important;
-    min-height: calc(100vh - 60px);
   }
 }
 </style>

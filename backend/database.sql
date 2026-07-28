@@ -100,7 +100,7 @@ CREATE TABLE default_categories (
 -- 插入默认支出分类
 INSERT INTO default_categories (name, type, icon) VALUES
 ('餐饮', 'expense', 'Food'),
-('交通', 'expense', 'Car'),
+('交通', 'expense', 'Bicycle'),
 ('购物', 'expense', 'ShoppingBag'),
 ('娱乐', 'expense', 'Film'),
 ('医疗', 'expense', 'FirstAidKit'),

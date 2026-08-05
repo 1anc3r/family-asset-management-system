@@ -228,11 +228,11 @@ npm install
 npm run dev
 ```
 
-前端服务默认运行在 http://localhost:5174
+前端服务默认运行在 http://localhost:51732
 
 ### 5. 访问应用
 
-打开浏览器访问 http://localhost:5174
+打开浏览器访问 http://localhost:51732
 
 首次使用需要注册账号。
 
